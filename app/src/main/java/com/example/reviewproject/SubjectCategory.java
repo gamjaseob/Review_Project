@@ -55,6 +55,9 @@ public class SubjectCategory extends AppCompatActivity {
 
             }
         });
+
+        // 카테고리 목록 불러오기
+        CategoryLoad();
     }
 
     //카테고리 추가 버튼 클릭 시 동작할 메소드 : 과목 추가 Dialog 생성
@@ -113,5 +116,37 @@ public class SubjectCategory extends AppCompatActivity {
                         Log.w(TAG, "Error adding document", e);
                     }
                 });
+    }
+
+    // 카테고리 불러오는 메소드
+    private void CategoryLoad() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();     // FireStore 인스턴스 가져오기
+        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
+        //DocumentReference userDocRef = userRef.document(userRef.getId());   // 문서 참조 변수 : 현재 사용자 정보
+        DocumentReference userDocRef = userRef.document(user.getUid());
+
+        userDocRef.collection("SubjectCategory")   // 현재 사용자의 SubjectCategory 서브컬렉션 접근
+                .get()  // 컬렉션 전체 데이터 가져오기
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                String subject_name = (String) document.get("subject");
+                                subjectList.add(subject_name);
+                                // 가져온 데이터에서 subject 필드 값을 SubjectList에 추가
+                                //ArrayList<String> List = (ArrayList<String>) document.get("subject");
+                                //subjectList.add(List);
+                                startToast("과목 불러오기 성공");
+                            }
+
+                            adapter.notifyDataSetChanged();     // 어댑터에 데이터가 추가되었다고 알려주기
+                        } else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                            startToast("과목 불러오기 실패");
+                        }
+                    }
+                });
+
     }
 }
