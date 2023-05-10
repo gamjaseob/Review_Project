@@ -69,6 +69,10 @@ public class SubjectCategory extends AppCompatActivity {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         String subject = editText.getText().toString();
                         subjectList.add(subject);           // 리스트에 과목 추가
+
+                        //CategoryStore(subjectList);         // 입력한 과목을 FireStore에 저장
+                        CategoryStore(subject);
+
                         adapter.notifyDataSetChanged();     // 어댑터에 데이터가 추가되었다고 알려주기
                         startToast("과목 추가 완료");
                     }
@@ -80,5 +84,34 @@ public class SubjectCategory extends AppCompatActivity {
 
     private void startToast(String msg) {     // Toast 띄우는 함수
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    // 입력한 과목을 FireStore에 저장하는 메소드
+    private void CategoryStore(String subject_name) {    //ArrayList<String> List
+        FirebaseFirestore db = FirebaseFirestore.getInstance();     // FireStore 인스턴스 가져오기
+        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
+        //DocumentReference userDocRef = userRef.document(userRef.getId());   // 문서 참조 변수 : 현재 사용자 정보
+        DocumentReference userDocRef = userRef.document(user.getUid());
+
+        Map<String, Object> subjectMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
+        subjectMap.put("subject", subject_name);     // subject 필드에 List 배열 값을 추가
+        // subject 필드에 과목이름 추가
+
+        // FireStore에 데이터 추가
+        userDocRef.collection("SubjectCategory")   // 현재 사용자의 SubjectCategory 서브컬렉션 접근
+                .add(subjectMap)            // 데이터 추가
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {        // 성공적으로 추가되었을 때
+                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+                        //startToast("과목 추가 완료");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding document", e);
+                    }
+                });
     }
 }
