@@ -147,6 +147,10 @@ public class SubjectCategory extends AppCompatActivity {
                         }
                     }
                 });
+    }
 
+    private void myStartActivity(Class c) {    // 원하는 화면으로 이동하는 함수 (화면 이동 함수)
+        Intent intent = new Intent(this, c);
+        startActivity(intent);
     }
 }
