@@ -39,6 +39,17 @@
                 android:layout_height="wrap_content"
                 android:text="로그아웃" />
 
+            <Button
+                android:id="@+id/studybtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="공부시작" />
+
+            <Button
+                android:id="@+id/manggagbtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="망각곡선" />
 
 
         </LinearLayout>

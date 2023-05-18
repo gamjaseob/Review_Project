@@ -63,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.logoutButton).setOnClickListener(onClickListener);  // 로그아웃 버튼 리스너 생성
         findViewById(R.id.SubjectCategory).setOnClickListener(onClickListener);  // 과목 리스트 버튼 리스너 생성
+        findViewById(R.id.studybtn).setOnClickListener(onClickListener);        //공부 버튼 리스너 생성
+        findViewById(R.id.manggagbtn).setOnClickListener(onClickListener);        //망각곡선 버튼 리스너 생성
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {     // 리스너 객체 생성 (클릭했을 때 반응)
@@ -77,11 +79,14 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.SubjectCategory:
                     myStartActivity(SubjectCategory.class);     // 과목리스트로 이동
                     break;
-
+                case R.id.studybtn:
+                    myStartActivity(Study.class);
+                    break;
+                case R.id.manggagbtn:
+                    myStartActivity(Manggag.class);
+                    break;
             }
-
         }
-
     }; // 세미콜론 필수
 
     private void myStartActivity(Class c) {    // 원하는 화면으로 이동하는 함수 (화면 이동 함수)
