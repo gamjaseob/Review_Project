@@ -23,6 +23,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.security.auth.Subject;
+
 public class Study extends AppCompatActivity {
 
     private static final String TAG = "Study";     // TAG 추가
@@ -74,28 +76,10 @@ public class Study extends AppCompatActivity {
     private void TimeSave(Calendar c) {    //ArrayList<String> List
         FirebaseFirestore db = FirebaseFirestore.getInstance();     // FireStore 인스턴스 가져오기
         CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
-        //DocumentReference userDocRef = userRef.document(userRef.getId());   // 문서 참조 변수 : 현재 사용자 정보
         DocumentReference userDocRef = userRef.document(user.getUid());
 
-        Map<String, Object> subjectMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
-        subjectMap.put("time", c);                             // subject 필드에 List 배열 값을 추가
-        // subject 필드에 과목이름 추가
+        Map<String, Object> timeMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
+        timeMap.put("time", c);                             // subject 필드에 List 배열 값을 추가
 
-        // FireStore에 데이터 추가
-        userDocRef.collection("time")   // 현재 사용자의 SubjectCategory 서브컬렉션 접근
-                .add(subjectMap)            // 데이터 추가
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {        // 성공적으로 추가되었을 때
-                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
-                        //startToast("과목 추가 완료");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error adding document", e);
-                    }
-                });
     }
 }
