@@ -1,18 +1,24 @@
 package com.example.reviewproject;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -31,13 +37,15 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SubjectCategory extends AppCompatActivity {
-    private static final String TAG = "SubjectCategory";     // TAG 추가
+
+    private static final String TAG = "SubjectCategoryActivity";     // TAG 추가
+
     // 현재 로그인 되어있는지 확인 ( 현재 사용자 불러오기 )
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
     private ListView listView;
     private ArrayAdapter<String> adapter;   // 어댑터 ( ListView와 데이터 배열의 다리 역할 )
     private ArrayList<String> subjectList;     // 카테고리 리스트 배열
@@ -60,8 +68,8 @@ public class SubjectCategory extends AppCompatActivity {
             }
         });
 
-                // 리스트뷰와 어댑터 초기화
-                listView = (ListView) findViewById(R.id.SubjectList);
+        // 리스트뷰와 어댑터 초기화
+        listView = (ListView) findViewById(R.id.SubjectList);
 
         subjectList = new ArrayList<>();       // 데이터 배열 생성
         adapter =  new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, subjectList); // 넣을 레이아웃, 데이터 배열 선언
@@ -70,8 +78,15 @@ public class SubjectCategory extends AppCompatActivity {
         // 리스트뷰 아이템 클릭 이벤트 처리
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            public void onItemClick(AdapterView<?> SubjectAdapter, View view, int i, long l) {
+                // 클릭한 항목의 정보를 가져옴
+                String selectedSubject = ((TextView) view).getText().toString();
 
+                // 선택한 항목의 정보를 Intent에 담아 File 클래스를 시작
+                Intent intent = new Intent(SubjectCategory.this, FileList.class);
+                intent.putExtra("selectedSubject", selectedSubject);
+                startActivity(intent);
+                Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
             }
         });
 
@@ -112,12 +127,11 @@ public class SubjectCategory extends AppCompatActivity {
     private void CategoryStore(String subject_name) {    //ArrayList<String> List
         FirebaseFirestore db = FirebaseFirestore.getInstance();     // FireStore 인스턴스 가져오기
         CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
-        //DocumentReference userDocRef = userRef.document(userRef.getId());   // 문서 참조 변수 : 현재 사용자 정보
-        DocumentReference userDocRef = userRef.document(user.getUid());
+        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
 
         Map<String, Object> subjectMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
         subjectMap.put("subject", subject_name);     // subject 필드에 List 배열 값을 추가
-        // subject 필드에 과목이름 추가
+                                                        // subject 필드에 과목이름 추가
 
         // FireStore에 데이터 추가
         userDocRef.collection("SubjectCategory")   // 현재 사용자의 SubjectCategory 서브컬렉션 접근
@@ -141,8 +155,7 @@ public class SubjectCategory extends AppCompatActivity {
     private void CategoryLoad() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();     // FireStore 인스턴스 가져오기
         CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
-        //DocumentReference userDocRef = userRef.document(userRef.getId());   // 문서 참조 변수 : 현재 사용자 정보
-        DocumentReference userDocRef = userRef.document(user.getUid());
+        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
 
         userDocRef.collection("SubjectCategory")   // 현재 사용자의 SubjectCategory 서브컬렉션 접근
                 .get()  // 컬렉션 전체 데이터 가져오기
@@ -153,16 +166,13 @@ public class SubjectCategory extends AppCompatActivity {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 String subject_name = (String) document.get("subject");
                                 subjectList.add(subject_name);
-                                // 가져온 데이터에서 subject 필드 값을 SubjectList에 추가
-                                //ArrayList<String> List = (ArrayList<String>) document.get("subject");
-                                //subjectList.add(List);
-                                startToast("과목 불러오기 성공");
+                                //startToast("과목 불러오기 성공");
                             }
 
                             adapter.notifyDataSetChanged();     // 어댑터에 데이터가 추가되었다고 알려주기
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
-                            startToast("과목 불러오기 실패");
+                            //startToast("과목 불러오기 실패");
                         }
                     }
                 });
