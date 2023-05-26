@@ -1,7 +1,6 @@
 package com.example.reviewproject;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,23 +19,33 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
 
+
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.ListResult;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FileList extends AppCompatActivity {
     private static final String TAG = "FileList";     // TAG 추가
@@ -48,20 +57,28 @@ public class FileList extends AppCompatActivity {
     //private ArrayAdapter<String> adapter;   // 어댑터 ( ListView와 데이터 배열의 다리 역할 )
     //private ArrayList<String> subjectList;     // 카테고리 리스트 배열
 
+    public String subjectDocId;
+    public String fileName;
+    public String Subject;
+    public MutableLiveData<Uri> selectedFileUri;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_list);
 
-        // Intent에서 선택한 과목 이름 받아오기
-        String Subject = getIntent().getStringExtra("selectedSubject");
+        // Intent에서 선택한 과목 이름 & Document ID 받아오기
+        Subject = getIntent().getStringExtra("selectedSubject");
+        ReturnSubjectDocRef(Subject);
+
         // 과목 이름을 타이틀로 설정
         setTitle(Subject);
 
         //값 전달 test
         Log.d(TAG, "받아온 과목 이름 : " + Subject);
+        Log.d(TAG, "받아온 Subject Collection Document Id : " + subjectDocId );
 
-        MutableLiveData<Uri> selectedFileUri = new MutableLiveData<>();     // 사용자가 선택한 파일의 URI 변수
+        selectedFileUri = new MutableLiveData<>();     // 사용자가 선택한 파일의 URI 변수
         // 파일 선택 다이얼로그를 띄우는 ActivityResultLauncher
         ActivityResultLauncher<String> selectFileLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
@@ -166,7 +183,9 @@ public class FileList extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // EditText에서 파일 이름 가져오기
-                String fileName = fileNameEditText.getText().toString();
+                fileName = fileNameEditText.getText().toString();
+                // 파일 정보 FireStore에 저장
+                UploadFireStore(fileName,Subject);
 
                 // 선택한 파일이 없는 경우 오류 메시지 출력
                 if (selectedFileUri.getValue() == null) {
@@ -178,7 +197,6 @@ public class FileList extends AppCompatActivity {
                 FirebaseStorage storage = FirebaseStorage.getInstance();
                 StorageReference storageRef = storage.getReference()
                         .child("users/" + user.getUid() + "/Subject/" + Subject)
-                        //.child(Subject)
                         .child(fileName);
                 storageRef.putFile(selectedFileUri.getValue())
                         .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -239,6 +257,22 @@ public class FileList extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {        // 파일리스트 아이템 클릭 이벤트
                     //downloadFile(fileRef);
+                    //TimeStore(position, subjectDocId);
+                    //TimeStore(position);
+                    TimeStore(fileName);
+                    // PDF 파일을 업로드하고 파일 URI 값을 전달하는 부분
+
+                    /*
+                    //String filePath = "users/" + user.getUid() + "/Subject/" + Subject;
+                    String filePath = selectedFileUri.toString();
+                    Uri fileUri = Uri.parse(filePath);  // String -> Uri 변환
+                    startToast("FileAdapter : 전달된 FileUri : " + selectedFileUri);
+
+                    // Intent를 생성하고 파일 URI 값을 설정하여 PdfViewerActivity로 전달
+                    Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
+                    intent.putExtra("fileUri", fileUri);
+                    startActivity(intent);
+                    */
                     startToast("동작 성공");
                 }
             });
@@ -246,5 +280,189 @@ public class FileList extends AppCompatActivity {
             return convertView;
         }
     }
+    // 아이템(파일) 클릭 시간(공부 시작시간)을 Firestore에 저장하는 함수
+    //public void TimeStore(int position, String subjectDocId) {
+    //public void TimeStore(int position) {
+    public void TimeStore(String fileName) {
+        // Firestore 초기화
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
+        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
+
+        CollectionReference subjectRef = userDocRef.collection("SubjectCategory");
+        DocumentReference subjectDocRef = subjectRef.document(subjectDocId); // SubjectCategory 컬렉션의 문서 접근
+
+        CollectionReference FileInfoRef = subjectDocRef.collection("FileInfo"); // SubjectCategory의 서브컬렉션
+
+        DocumentReference FileInfDocRef = FileInfoRef.document(fileName);
+
+        // 현재 시간 가져오기
+        Date currentTime = Calendar.getInstance().getTime();
+
+        // fileName을 식별자로 사용
+        FileInfoRef.document(fileName)
+                .update("StudyStart", currentTime)  // 현재 시간을 'StudyStart' 필드에 업데이트
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // 업데이트 성공
+                        startToast("공부 시작 시간 기록");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // 업데이트 실패
+                        startToast("공부 시작 시간 기록 실패");
+                        Log.e(TAG, "Error saving time: " + e.getMessage());
+                    }
+                });
+    }
+
+    // 파일 정보를 FireStore에 저장
+    //public void UploadFireStore(String FileName, String subject, int position) {
+    public void UploadFireStore(String FileName, String subject) {
+
+        // Firestore 초기화
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
+        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
+
+        CollectionReference subjectRef = userDocRef.collection("SubjectCategory");
+        DocumentReference subjectDocRef = subjectRef.document(subjectDocId); // SubjectCategory 컬렉션의 문서 접근
+
+        CollectionReference FileInfoRef = subjectDocRef.collection("FileInfo"); // SubjectCategory의 서브컬렉션 생성
+
+        // 현재 시간 가져오기
+        Date currentTime = Calendar.getInstance().getTime();
+
+        Map<String, Object> FileInfoMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
+        FileInfoMap.put("SubjectCategoryId", subject);     // 해당 파일의 과목 카테고리(필드) 추가
+        FileInfoMap.put("FileName", FileName);  // 식별자로 사용
+        FileInfoMap.put("UploadDate", currentTime); // 파일 업로드날짜
+
+        //String FileId = "File_" + position; // 파일리스트 아이템(파일) 식별자
+
+        // FireStore : FileInfoRef Collection에 데이터 추가
+        FileInfoRef.document(FileName).set(FileInfoMap)            // 데이터 추가 ( Collection : add / Document : set )
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "FileInfo Collection 데이터(문서)추가: " + FileName);
+                    // 성공적으로 문서가 추가되었을 때 실행되는 코드
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "FileInfo Collection : Error adding document", e);
+                    // 문서 추가 실패 시 실행되는 코드
+                });
+
+
+
+        // Firestore 초기화
+        /*
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
+        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
+
+        userDocRef.collection("SubjectCategory")
+                .whereEqualTo("subject", subject)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                String DocumentId = document.getId();
+                                Log.d(TAG, document.getId() + " => " + document.getData());
+                            }
+                        } else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+
+         */
+        /*
+        CollectionReference FileRef = userDocRef.collection("FileInfo");
+        //DocumentReference FileDocRef = userDocRef.collection("FileInfo").document();
+
+        Map<String, Object> FileInfoMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
+        FileInfoMap.put("SubjectCategoryId", subject);     // 해당 파일의 과목 카테고리(필드) 추가
+
+        // FireStore에 데이터 추가
+        FileRef.add(FileInfoMap)            // 데이터 추가
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {        // 성공적으로 추가되었을 때
+                        String documentId = documentReference.getId();      // 문서 식별자 가져오기
+                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+                        //startToast("과목 추가 완료");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding document", e);
+                    }
+                });
+                */
+    }
+
+    // 과목 카테고리 해당 문서의 ID 반환 메서드
+    public void ReturnSubjectDocRef(String subject) {
+        //String DocumentId = null;
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
+        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
+
+        userDocRef.collection("SubjectCategory")
+                .whereEqualTo("subject", subject)   // 받아온 값과 일치하는 문서 찾기
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                //String DocumentId = document.getId();   // 아이디 구하기
+                                subjectDocId = document.getId();
+                                Log.d(TAG,"ReturnDocRef 메서드 Return 값 : " + document.getId());
+                            }
+                        } else {
+                            Log.d(TAG, "ReturnDocRef 메서드 : Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+    }
+/*
+    public void ReturnFileDocRef (int position) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
+        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
+
+        CollectionReference subjectRef = userDocRef.collection("SubjectCategory");
+        DocumentReference subjectDocRef = subjectRef.document(subjectDocId); // SubjectCategory 컬렉션의 문서 접근
+
+        CollectionReference FileInfoRef = subjectDocRef.collection("FileInfo"); // SubjectCategory의 서브컬렉션
+        String FileId = "File_" + position; // 파일리스트 아이템(파일) 식별자
+        DocumentReference FileInfDocRef = FileInfoRef.document(FileId);
+
+        userDocRef.collection("SubjectCategory")
+                .whereEqualTo("subject", subject)   // 받아온 값과 일치하는 문서 찾기
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                //String DocumentId = document.getId();   // 아이디 구하기
+                                //String DocumentId = document.getId();
+                                subjectDocId = document.getId();
+                                Log.d(TAG,"ReturnDocRef 메서드 Return 값 : " + document.getId());
+                            }
+                        } else {
+                            Log.d(TAG, "ReturnDocRef 메서드 : Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+    }
+ */
 }
 

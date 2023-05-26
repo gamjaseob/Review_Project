@@ -51,6 +51,8 @@ public class SubjectCategory extends AppCompatActivity {
     private ArrayList<String> subjectList;     // 카테고리 리스트 배열
     private FloatingActionButton SubjectAddButton;      // 과목 추가 버튼
 
+    //private String SubjectdocumentId;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -78,15 +80,16 @@ public class SubjectCategory extends AppCompatActivity {
         // 리스트뷰 아이템 클릭 이벤트 처리
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> SubjectAdapter, View view, int i, long l) {
-                // 클릭한 항목의 정보를 가져옴
+            public void onItemClick(AdapterView<?> parent, View view, int position, long l) {
+                // 클릭한 항목의 정보를 가져옴 : 과목이름
                 String selectedSubject = ((TextView) view).getText().toString();
 
-                // 선택한 항목의 정보를 Intent에 담아 File 클래스를 시작
+                // 선택한 항목의 정보를 Intent에 담아 File.Class를 시작
                 Intent intent = new Intent(SubjectCategory.this, FileList.class);
-                intent.putExtra("selectedSubject", selectedSubject);
-                startActivity(intent);
+                intent.putExtra("selectedSubject", selectedSubject);    // 과목이름 전달
                 Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
+
+                startActivity(intent);
             }
         });
 
@@ -108,10 +111,10 @@ public class SubjectCategory extends AppCompatActivity {
                         subjectList.add(subject);           // 리스트에 과목 추가
 
                         //CategoryStore(subjectList);         // 입력한 과목을 FireStore에 저장
-                        CategoryStore(subject);
+                        CategoryStore(subject);         // 입력한 과목을 FireStore에 저장
 
                         adapter.notifyDataSetChanged();     // 어댑터에 데이터가 추가되었다고 알려주기
-                        startToast("과목 추가 완료");
+                        //startToast("과목 추가 완료");
                     }
                 })
                 .setNegativeButton("취소",null);
@@ -129,23 +132,26 @@ public class SubjectCategory extends AppCompatActivity {
         CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
         DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
 
+        CollectionReference subjectRef = userDocRef.collection("SubjectCategory");  // 현재 사용자의 SubjectCategory 서브컬렉션 접근
+
         Map<String, Object> subjectMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
         subjectMap.put("subject", subject_name);     // subject 필드에 List 배열 값을 추가
                                                         // subject 필드에 과목이름 추가
 
         // FireStore에 데이터 추가
-        userDocRef.collection("SubjectCategory")   // 현재 사용자의 SubjectCategory 서브컬렉션 접근
-                .add(subjectMap)            // 데이터 추가
+        subjectRef.add(subjectMap)            // 데이터 추가
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {        // 성공적으로 추가되었을 때
+                        String documentId = documentReference.getId();      // 문서 식별자 가져오기
                         Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
-                        //startToast("과목 추가 완료");
+                        startToast("과목 추가 완료");
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        startToast("과목 추가 실패");
                         Log.w(TAG, "Error adding document", e);
                     }
                 });
@@ -177,7 +183,6 @@ public class SubjectCategory extends AppCompatActivity {
                     }
                 });
     }
-
     private void myStartActivity(Class c) {    // 원하는 화면으로 이동하는 함수 (화면 이동 함수)
         Intent intent = new Intent(this, c);
         startActivity(intent);
