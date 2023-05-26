@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         //명언
-        famsay = (TextView)findViewById(R.id.FamSay);
+        famsay = (TextView) findViewById(R.id.FamSay);
 
         //명언 관련
         FamSayAdd();    //명언 추가
@@ -65,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         String name = (String) document.getData().get("name");
-                        if(document != null) {
-                                if (document.exists()) {        // 사용자에 대한 정보가 존재하면
+                        if (document != null) {
+                            if (document.exists()) {        // 사용자에 대한 정보가 존재하면
                                 Log.d(TAG, "DocumentSnapshot data: " + document.getData().get("name"));
                                 startToast(name + "님 환영합니다.");
                             } else {
@@ -112,8 +112,8 @@ public class MainActivity extends AppCompatActivity {
     }; // 세미콜론 필수
 
     private void myStartActivity(Class c) {    // 원하는 화면으로 이동하는 함수 (화면 이동 함수)
-            Intent intent = new Intent(this, c);
-            startActivity(intent);
+        Intent intent = new Intent(this, c);
+        startActivity(intent);
     }
 
     private void startToast(String msg) {     // Toast 띄우는 함수
@@ -121,16 +121,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //명언 함수
-    private void FamSay(){
+    private void FamSay() {
         Timer scheduler = new Timer();
-        TimerTask task = new TimerTask(){
+        TimerTask task = new TimerTask() {
             @Override
             public void run() {
                 famsay.setText(famsaylist.get(i));
-                if(i < 9){
+                if (i < 9) {
                     i = i + 1;
-                }
-                else {
+                } else {
                     i = 0;
                 }
             }
@@ -139,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //명언 추가 함수
-    private void FamSayAdd(){
+    private void FamSayAdd() {
         famsaylist.add("명언1");
         famsaylist.add("명언2");
         famsaylist.add("명언3");
