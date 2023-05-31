@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 
@@ -28,6 +29,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -46,37 +49,42 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class FileList extends AppCompatActivity {
     private static final String TAG = "FileList";     // TAG 추가
 
     // 현재 사용자 불러오기
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-    private ListView fileListView;
-    private FloatingActionButton FileAddButton;
-    //private ArrayAdapter<String> adapter;   // 어댑터 ( ListView와 데이터 배열의 다리 역할 )
-    //private ArrayList<String> subjectList;     // 카테고리 리스트 배열
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    public ListView fileListView;
+    public FloatingActionButton FileAddButton;     // 파일 추가 버튼
+    public FloatingActionButton ManggagViewButton;     // 망각곡선 확인 버튼
 
-    public String subjectDocId;
-    public String fileName;
-    public String Subject;
-    public MutableLiveData<Uri> selectedFileUri;
+    public String subjectDocId;     // SubjectCategory 문서 ID
+    public String fileName;         // 파일 이름
+    public String Subject;          // 해당 과목
+    public MutableLiveData<Uri> selectedFileUri;       // File Uri
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_list);
 
-        // Intent에서 선택한 과목 이름 & Document ID 받아오기
+        // Intent에서 선택한 과목 이름 받아오기
         Subject = getIntent().getStringExtra("selectedSubject");
+
+        // 받아온 값을 통해 Subject Category Document ID 추출
         ReturnSubjectDocRef(Subject);
+        //ReturnFileDocRef(fileName);
 
         // 과목 이름을 타이틀로 설정
         setTitle(Subject);
 
         //값 전달 test
         Log.d(TAG, "받아온 과목 이름 : " + Subject);
-        Log.d(TAG, "받아온 Subject Collection Document Id : " + subjectDocId );
+        Log.d(TAG, "추출한 Subject Collection DocumentID : " + subjectDocId);  // 여기가 왜 null인지 모르겠다.
+
 
         selectedFileUri = new MutableLiveData<>();     // 사용자가 선택한 파일의 URI 변수
         // 파일 선택 다이얼로그를 띄우는 ActivityResultLauncher
@@ -95,6 +103,7 @@ public class FileList extends AppCompatActivity {
         fileListView = (ListView) findViewById(R.id.FileList);
         // FileUploadButton 찾아서 초기화
         FileAddButton = findViewById(R.id.FileAddButton);
+        ManggagViewButton = findViewById(R.id.ManggagViewButton);
 
         // 파일 업로드 버튼 클릭 이벤트 처리
         FileAddButton.setOnClickListener(new View.OnClickListener() {
@@ -104,17 +113,24 @@ public class FileList extends AppCompatActivity {
             }
         });
 
-        // * 기본 리스트 레이아웃 사용할 때 로직 *
+        // 망각곡선 확인 버튼 클릭 이벤트 처리 : 망각 진행률을 확인하기 위한 리스트뷰로 이동
+        ManggagViewButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
-        // 파일 이름을 출력할 각 아이템의 레이아웃 파일 지정
-        //int layout = R.layout.list_file_item;
+                // 선택한 항목의 정보를 Intent에 담아 FileList_Manggag_view.Class를 시작
 
-        // 선택한 과목의 파일 리스트를 가져와서 ArrayAdapter에 저장
-        //ArrayList<String> fileList = getFileList(Subject);
-        //ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, layout, fileList);
+                Intent intent = new Intent(FileList.this, FileList_Manggag_view.class);
+                intent.putExtra("Subject", Subject);    // 과목이름 전달
+                //intent.putExtra("fileName", fileName);    // 파일 이름(식별자) 전달
 
-        // ListView에 ArrayAdapter 지정
-        //fileListView.setAdapter(adapter);
+                Log.d(TAG, "전달한 과목 이름 : " + Subject);
+                //Log.d(TAG, "전달한 파일 이름 : " + fileName);
+
+                startActivity(intent);
+
+            }
+        });
 
         getFileList(Subject);   // 파일 리스트 불러오기
 
@@ -123,7 +139,6 @@ public class FileList extends AppCompatActivity {
     private void startToast(String msg) {     // Toast 띄우는 함수
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
-
 
     // 선택한 과목의 파일 리스트를 가져오는 메소드
     private void getFileList(String Subject) {
@@ -148,7 +163,69 @@ public class FileList extends AppCompatActivity {
                 });
     }
 
-    // 업로드할 파일을 입력받기 위한 Dialog (FileLauncher, 과목 이름, 파일URI 전달)
+    // 파일리스트를 출력하기위한 커스텀 어댑터
+    public class FileAdapter extends ArrayAdapter<StorageReference> {
+        private static final String TAG = "FileAdapter";
+        private final Context context;
+        private final List<StorageReference> files;
+
+        public FileAdapter(Context context, List<StorageReference> files) {     // 생성자, 멤버변수 초기화
+            super(context, R.layout.list_file_item, files);
+            this.context = context;
+            this.files = files;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            // Item의 현재 위치 구하기
+            StorageReference fileRef = files.get(position);
+
+            // 각 아이템 뷰에 해당하는 XML 파일을 inflate ( XML 파일 -> 실제 뷰 객체 )
+            if (convertView == null) {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_file_item, parent, false);
+            }
+
+            TextView filenameView = (TextView) convertView.findViewById(R.id.file_name);
+
+            // 파일 이름 가져와 나타내기
+            filenameView.setText(fileRef.getName());
+
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {        // 파일리스트 아이템 클릭 이벤트 : 공부 시작 시간 저장, 뷰어 이동
+
+                    fileName = fileRef.getName();  // 전역변수 : fileName 구하기
+                    //downloadFile(fileRef);
+                    TimeStore(fileName);
+
+                    //Intent intent = new Intent(FileList.this, FileList_Manggag_view.class);
+                    //intent.putExtra("Subject", Subject);    // 과목이름 전달
+                    //intent.putExtra("fileName", fileName);    // 파일 이름(식별자) 전달
+
+                    //Log.d(TAG, "전달한 과목 이름 : " + Subject);
+                    //Log.d(TAG, "전달한 파일 이름 : " + fileName);
+
+                    // PDF 파일을 업로드하고 파일 URI 값을 전달하는 부분
+
+                    /*
+                    //String filePath = "users/" + user.getUid() + "/Subject/" + Subject;
+                    String filePath = selectedFileUri.toString();
+                    Uri fileUri = Uri.parse(filePath);  // String -> Uri 변환
+                    startToast("FileAdapter : 전달된 FileUri : " + selectedFileUri);
+
+                    // Intent를 생성하고 파일 URI 값을 설정하여 PdfViewerActivity로 전달
+                    Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
+                    intent.putExtra("fileUri", fileUri);
+                    startActivity(intent);
+                    */
+                }
+            });
+
+            return convertView;
+        }
+    }
+
+    // 업로드할 파일을 입력받기 위한 Dialog (FileLauncher, 과목 이름, 파일 URI 전달)
     private void UploadFile_Dialog(ActivityResultLauncher<String> selectFileLauncher, String Subject, MutableLiveData<Uri> selectedFileUri) {
 
         // Dialog Builder 생성
@@ -225,76 +302,19 @@ public class FileList extends AppCompatActivity {
             }
         });
     }
-
-    // 파일리스트를 출력하기위한 커스텀 어댑터
-    public class FileAdapter extends ArrayAdapter<StorageReference> {
-        private static final String TAG = "FileAdapter";
-        private final Context context;
-        private final List<StorageReference> files;
-
-        public FileAdapter(Context context, List<StorageReference> files) {     // 생성자, 멤버변수 초기화
-            super(context, R.layout.list_file_item, files);
-            this.context = context;
-            this.files = files;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            // Item의 현재 위치 구하기
-            StorageReference fileRef = files.get(position);
-
-            // 각 아이템 뷰에 해당하는 XML 파일을 inflate ( XML 파일 -> 실제 뷰 객체 )
-            if (convertView == null) {
-                convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_file_item, parent, false);
-            }
-
-            TextView filenameView = (TextView) convertView.findViewById(R.id.file_name);
-
-            // 파일 이름 가져와 나타내기
-            filenameView.setText(fileRef.getName());
-
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {        // 파일리스트 아이템 클릭 이벤트
-                    //downloadFile(fileRef);
-                    //TimeStore(position, subjectDocId);
-                    //TimeStore(position);
-                    TimeStore(fileName);
-                    // PDF 파일을 업로드하고 파일 URI 값을 전달하는 부분
-
-                    /*
-                    //String filePath = "users/" + user.getUid() + "/Subject/" + Subject;
-                    String filePath = selectedFileUri.toString();
-                    Uri fileUri = Uri.parse(filePath);  // String -> Uri 변환
-                    startToast("FileAdapter : 전달된 FileUri : " + selectedFileUri);
-
-                    // Intent를 생성하고 파일 URI 값을 설정하여 PdfViewerActivity로 전달
-                    Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
-                    intent.putExtra("fileUri", fileUri);
-                    startActivity(intent);
-                    */
-                    startToast("동작 성공");
-                }
-            });
-
-            return convertView;
-        }
-    }
     // 아이템(파일) 클릭 시간(공부 시작시간)을 Firestore에 저장하는 함수
-    //public void TimeStore(int position, String subjectDocId) {
-    //public void TimeStore(int position) {
     public void TimeStore(String fileName) {
         // Firestore 초기화
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
-        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
+        CollectionReference FileInfoRef = db.collection("users")   // 해당 파일의 문서 접근
+                .document(user.getUid())
+                .collection("SubjectCategory")
+                .document(subjectDocId)
+                .collection("FileInfo");
 
-        CollectionReference subjectRef = userDocRef.collection("SubjectCategory");
-        DocumentReference subjectDocRef = subjectRef.document(subjectDocId); // SubjectCategory 컬렉션의 문서 접근
-
-        CollectionReference FileInfoRef = subjectDocRef.collection("FileInfo"); // SubjectCategory의 서브컬렉션
-
-        DocumentReference FileInfDocRef = FileInfoRef.document(fileName);
+        // (Test) 값 확인
+        Log.d(TAG, "Timestore : Subjcet Collection Document ID: " + subjectDocId);
+        Log.d(TAG, "Timestore : FileInfo Collection Document ID: " + fileName);
 
         // 현재 시간 가져오기
         Date currentTime = Calendar.getInstance().getTime();
@@ -306,7 +326,7 @@ public class FileList extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void aVoid) {
                         // 업데이트 성공
-                        startToast("공부 시작 시간 기록");
+                        startToast("공부 시작 시간 저장");
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -320,18 +340,14 @@ public class FileList extends AppCompatActivity {
     }
 
     // 파일 정보를 FireStore에 저장
-    //public void UploadFireStore(String FileName, String subject, int position) {
     public void UploadFireStore(String FileName, String subject) {
 
         // Firestore 초기화
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
-        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
-
-        CollectionReference subjectRef = userDocRef.collection("SubjectCategory");
-        DocumentReference subjectDocRef = subjectRef.document(subjectDocId); // SubjectCategory 컬렉션의 문서 접근
-
-        CollectionReference FileInfoRef = subjectDocRef.collection("FileInfo"); // SubjectCategory의 서브컬렉션 생성
+        CollectionReference FileInfoRef = db.collection("users")   // 해당 파일의 문서 접근
+                .document(user.getUid())
+                .collection("SubjectCategory")
+                .document(subjectDocId)
+                .collection("FileInfo");
 
         // 현재 시간 가져오기
         Date currentTime = Calendar.getInstance().getTime();
@@ -341,11 +357,10 @@ public class FileList extends AppCompatActivity {
         FileInfoMap.put("FileName", FileName);  // 식별자로 사용
         FileInfoMap.put("UploadDate", currentTime); // 파일 업로드날짜
 
-        //String FileId = "File_" + position; // 파일리스트 아이템(파일) 식별자
-
         // FireStore : FileInfoRef Collection에 데이터 추가
         FileInfoRef.document(FileName).set(FileInfoMap)            // 데이터 추가 ( Collection : add / Document : set )
                 .addOnSuccessListener(aVoid -> {
+                    //Log.d(TAG, "Subjcet Collection Documentv ID: " + subjectDocId);
                     Log.d(TAG, "FileInfo Collection 데이터(문서)추가: " + FileName);
                     // 성공적으로 문서가 추가되었을 때 실행되는 코드
                 })
@@ -354,62 +369,11 @@ public class FileList extends AppCompatActivity {
                     // 문서 추가 실패 시 실행되는 코드
                 });
 
-
-
-        // Firestore 초기화
-        /*
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
-        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
-
-        userDocRef.collection("SubjectCategory")
-                .whereEqualTo("subject", subject)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                String DocumentId = document.getId();
-                                Log.d(TAG, document.getId() + " => " + document.getData());
-                            }
-                        } else {
-                            Log.d(TAG, "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-
-         */
-        /*
-        CollectionReference FileRef = userDocRef.collection("FileInfo");
-        //DocumentReference FileDocRef = userDocRef.collection("FileInfo").document();
-
-        Map<String, Object> FileInfoMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
-        FileInfoMap.put("SubjectCategoryId", subject);     // 해당 파일의 과목 카테고리(필드) 추가
-
-        // FireStore에 데이터 추가
-        FileRef.add(FileInfoMap)            // 데이터 추가
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {        // 성공적으로 추가되었을 때
-                        String documentId = documentReference.getId();      // 문서 식별자 가져오기
-                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
-                        //startToast("과목 추가 완료");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error adding document", e);
-                    }
-                });
-                */
     }
 
     // 과목 카테고리 해당 문서의 ID 반환 메서드
     public void ReturnSubjectDocRef(String subject) {
-        //String DocumentId = null;
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
         CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
         DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
 
@@ -421,9 +385,8 @@ public class FileList extends AppCompatActivity {
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                //String DocumentId = document.getId();   // 아이디 구하기
-                                subjectDocId = document.getId();
-                                Log.d(TAG,"ReturnDocRef 메서드 Return 값 : " + document.getId());
+                                subjectDocId = document.getId();    // 아이디 구하기
+                                Log.d(TAG,"ReturnDocRef 메서드 Return 값 : " + subjectDocId);
                             }
                         } else {
                             Log.d(TAG, "ReturnDocRef 메서드 : Error getting documents: ", task.getException());
@@ -431,38 +394,5 @@ public class FileList extends AppCompatActivity {
                     }
                 });
     }
-/*
-    public void ReturnFileDocRef (int position) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
-        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
 
-        CollectionReference subjectRef = userDocRef.collection("SubjectCategory");
-        DocumentReference subjectDocRef = subjectRef.document(subjectDocId); // SubjectCategory 컬렉션의 문서 접근
-
-        CollectionReference FileInfoRef = subjectDocRef.collection("FileInfo"); // SubjectCategory의 서브컬렉션
-        String FileId = "File_" + position; // 파일리스트 아이템(파일) 식별자
-        DocumentReference FileInfDocRef = FileInfoRef.document(FileId);
-
-        userDocRef.collection("SubjectCategory")
-                .whereEqualTo("subject", subject)   // 받아온 값과 일치하는 문서 찾기
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                //String DocumentId = document.getId();   // 아이디 구하기
-                                //String DocumentId = document.getId();
-                                subjectDocId = document.getId();
-                                Log.d(TAG,"ReturnDocRef 메서드 Return 값 : " + document.getId());
-                            }
-                        } else {
-                            Log.d(TAG, "ReturnDocRef 메서드 : Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-    }
- */
 }
-
