@@ -51,8 +51,6 @@ public class SubjectCategory extends AppCompatActivity {
     private ArrayList<String> subjectList;     // 카테고리 리스트 배열
     private FloatingActionButton SubjectAddButton;      // 과목 추가 버튼
 
-    //private String SubjectdocumentId;
-
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -87,6 +85,7 @@ public class SubjectCategory extends AppCompatActivity {
                 // 선택한 항목의 정보를 Intent에 담아 File.Class를 시작
                 Intent intent = new Intent(SubjectCategory.this, FileList.class);
                 intent.putExtra("selectedSubject", selectedSubject);    // 과목이름 전달
+
                 Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
 
                 startActivity(intent);
@@ -114,7 +113,6 @@ public class SubjectCategory extends AppCompatActivity {
                         CategoryStore(subject);         // 입력한 과목을 FireStore에 저장
 
                         adapter.notifyDataSetChanged();     // 어댑터에 데이터가 추가되었다고 알려주기
-                        //startToast("과목 추가 완료");
                     }
                 })
                 .setNegativeButton("취소",null);

@@ -17,9 +17,12 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -28,6 +31,8 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";     // TAG 추가
     private FirebaseAuth mAuth;     // FirevaseAuth 인스턴스 선언
+    // 현재 로그인 되어있는지 확인 ( 현재 사용자 불러오기 )
+    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     ArrayList<String> famsaylist = new ArrayList<String>();
 
