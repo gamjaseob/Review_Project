@@ -16,6 +16,10 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // PDF Viewer를 위함
+        multiDexEnabled true
+
     }
 
     buildTypes {
@@ -30,10 +34,16 @@ android {
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+    gradlePluginPortal()
+}
+
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
@@ -45,18 +55,33 @@ dependencies {
     // TODO: Add the dependencies for Firebase products you want to use
     implementation 'com.google.firebase:firebase-analytics'
 
-    // 사용자 인증 library
-    implementation 'com.google.firebase:firebase-auth'
+    // 사용자 인증 library (최신화 필요)
+    implementation 'com.google.firebase:firebase-auth:22.1.0'
 
-    // Cloud FireStore library
-    implementation 'com.google.firebase:firebase-firestore'
+    // Cloud FireStore library (최신화 필요)
+    implementation 'com.google.firebase:firebase-firestore:24.7.0'
 
     // Cloud Storage library
-    implementation 'com.google.firebase:firebase-storage'
+    implementation 'com.google.firebase:firebase-storage:20.2.1'
+
+    // (Test) PDF Viewer library
+    // 이전에 시도하였는데 오류 발생, 아마 실행되지 않을거임
+    implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
+    //implementation 'com.github.mhiew:android-pdf-viewer:3.2.0-beta.1'
+    // Firebase App Check library ( PDF Viewer 사용 시 필요 )
+    implementation 'com.google.firebase:firebase-appcheck:17.0.1'
+
+    //implementation 'com.google.firebase:firebase-appcheck-safety-net:'
+
+    // 2024년 서비스 종료
+    //implementation 'com.google.firebase:firebase-appcheck-safetynet:16.1.2'
+
+
+
 
     //푸시알림용
-    implementation 'com.google.firebase:firebase-messaging:23.1.2'
-    implementation 'androidx.work:work-runtime:2.7.1'
+    implementation 'com.google.firebase:firebase-messaging:23.2.0'
+    implementation 'androidx.work:work-runtime:2.8.1'
 
     //망각곡선 MPA 종속성
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'

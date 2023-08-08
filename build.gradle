@@ -26,7 +26,7 @@ allprojects {
         google()  // Google's Maven repository
         mavenCentral()  // Maven Central repository
 
-        //망각곡선용
+        //망각곡선 & PDF Viewer 라이브러리
         maven { url "https://jitpack.io" }
     }
 }
