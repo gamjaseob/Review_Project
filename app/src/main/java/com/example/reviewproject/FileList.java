@@ -76,7 +76,6 @@ public class FileList extends AppCompatActivity {
 
         // 받아온 값을 통해 Subject Category Document ID 추출
         ReturnSubjectDocRef(Subject);
-        //ReturnFileDocRef(fileName);
 
         // 과목 이름을 타이틀로 설정
         setTitle(Subject);
@@ -195,29 +194,22 @@ public class FileList extends AppCompatActivity {
                 public void onClick(View view) {        // 파일리스트 아이템 클릭 이벤트 : 공부 시작 시간 저장, 뷰어 이동
 
                     fileName = fileRef.getName();  // 전역변수 : fileName 구하기
-                    //downloadFile(fileRef);
                     TimeStore(fileName);
 
-                    //Intent intent = new Intent(FileList.this, FileList_Manggag_view.class);
-                    //intent.putExtra("Subject", Subject);    // 과목이름 전달
-                    //intent.putExtra("fileName", fileName);    // 파일 이름(식별자) 전달
 
-                    //Log.d(TAG, "전달한 과목 이름 : " + Subject);
-                    //Log.d(TAG, "전달한 파일 이름 : " + fileName);
+                    // PDF 파일을 업로드하고 파일 경로 값을 전달하는 부분
+                    //String filePath = "users/" + user.getUid() + "/Subject/" + Subject + "/" + fileName;
+                    String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
 
-                    // PDF 파일을 업로드하고 파일 URI 값을 전달하는 부분
+                    Log.d(TAG, "FileAdapter : 전달된 파일 경로 : " + DirectoryPath);
 
-                    /*
-                    //String filePath = "users/" + user.getUid() + "/Subject/" + Subject;
-                    String filePath = selectedFileUri.toString();
-                    Uri fileUri = Uri.parse(filePath);  // String -> Uri 변환
-                    startToast("FileAdapter : 전달된 FileUri : " + selectedFileUri);
-
-                    // Intent를 생성하고 파일 URI 값을 설정하여 PdfViewerActivity로 전달
+                    // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달
                     Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
-                    intent.putExtra("fileUri", fileUri);
+                    intent.putExtra("DirectoryPath", DirectoryPath);
+                    intent.putExtra("fileName", fileName);
+                    intent.putExtra("Subject", Subject);    // 과목이름 전달
                     startActivity(intent);
-                    */
+
                 }
             });
 
@@ -246,11 +238,12 @@ public class FileList extends AppCompatActivity {
         AlertDialog alertDialog = builder.create();     // 객체 생성
         alertDialog.show();         // 사용자에게 보여주기
 
-        // 파일 업로드 버튼 클릭 시 파일 선택 Dialog 띄우기
+        // 파일 선택 버튼 클릭 시 파일 선택창 띄우기
         selectFileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //launchFilePicker(selectFileLauncher);
+                startToast("파일 선택 후, 파일 이름을 입력해주세요!");
                 selectFileLauncher.launch("*/*");      // 모든 파일 형식
             }
         });
