@@ -69,16 +69,15 @@ public class MainActivity extends AppCompatActivity {
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
-                        String name = (String) document.getData().get("name");
-                        if (document != null) {
-                            if (document.exists()) {        // 사용자에 대한 정보가 존재하면
-                                Log.d(TAG, "DocumentSnapshot data: " + document.getData().get("name"));
-                                startToast(name + "님 환영합니다.");
-                            } else {
-                                Log.d(TAG, "No such document");
-                                startToast("회원정보를 등록해주세요");
-                                //myStartActivity(MemberinitActivity.class);      // 회원정보 등록 페이지(마이페이지)로 이동 ( 예정 )
-                            }
+                       //String name = (String) document.getData().get("name");
+                        if (document.exists()) {        // 사용자에 대한 정보가 존재하면
+                            String name = (String) document.getData().get("name");
+                            Log.d(TAG, "DocumentSnapshot data: " + document.getData().get("name"));
+                            startToast(name + "님 환영합니다.");
+                        } else {
+                            Log.d(TAG, "No such document");
+                            startToast("회원정보를 등록해주세요");
+                            //myStartActivity(MemberinitActivity.class);      // 회원정보 등록 페이지(마이페이지)로 이동 ( 예정 )
                         }
 
                     } else {
