@@ -62,8 +62,7 @@ public class Manggag extends AppCompatActivity {
         Log.d(TAG, "추출한 Subject Collection Document Id : " + subjectDocId );
         Log.d(TAG, "받아온 파일 이름 : " + fileName);
 
-        // 공부 시작 시간 ( StudyStart )을 FireStore로부터 얻어오는 메서드
-        //StudyTimeLoad(fileName);
+        // 공부 종료 시간 ( StudyEnd )을 FireStore로부터 얻어오는 메서드 : 주석 풀어보고 Test 해보기
         //StudyTimeLoad(fileName, subjectDocId);
 
         //Drawgraph();
@@ -119,7 +118,7 @@ public class Manggag extends AppCompatActivity {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    // 공부 시작 시간 ( StudyStart )을 FireStore로부터 얻어오는 메서드
+    // 공부 종료 시간 ( StudyEnd )을 FireStore로부터 얻어오는 메서드
     public void StudyTimeLoad (String fileName, String subjectDocId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference FileInfoDocRef = db.collection("users")   // 해당 파일의 문서 접근
@@ -133,9 +132,9 @@ public class Manggag extends AppCompatActivity {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
                 if (document.exists()) {
-                    // 공부 시작 시간 불러오기
-                    studyTime = document.getTimestamp("StudyStart");      // studyTime : 전역 변수
-                    Log.d(TAG,"Firestore : " + "StudyTime (공부 시작 시간)  : " + studyTime);
+                    // 공부 종료 시간 불러오기
+                    studyTime = document.getTimestamp("StudyEnd");      // studyTime : 전역 변수
+                    Log.d(TAG,"Firestore : " + "StudyTime (공부 종료 시간)  : " + studyTime);
                 } else {
                     Log.d(TAG,"Firestore : " + "No such document");
                 }
@@ -161,10 +160,9 @@ public class Manggag extends AppCompatActivity {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 subjectDocId = document.getId();
 
+                                //StudyTimeLoad(fileName, subjectDocId);
 
-                                StudyTimeLoad(fileName, subjectDocId);
-
-                                // 이 부분에 망각 곡선 작성
+                                // 이 부분에 망각 곡선 작성 :onCreate() 함수부터 Test 바람
 
                                 Log.d(TAG,"ReturnDocRef 메서드 Return 값 : " + subjectDocId);
                             }
