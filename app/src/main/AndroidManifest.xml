@@ -4,6 +4,9 @@
     package="com.example.reviewproject">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+
     <uses-permission
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
         android:maxSdkVersion="33" />
@@ -37,6 +40,7 @@
         <activity android:name=".SubjectCategory" />
         <activity android:name=".FileList" />
         <activity android:name=".FileList_Manggag_view" />
+        <activity android:name=".PDFViewerActivity" />
 
         <service
             android:name=".MyFirebaseMessagingService"
