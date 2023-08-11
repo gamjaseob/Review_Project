@@ -17,9 +17,12 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -28,6 +31,8 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";     // TAG 추가
     private FirebaseAuth mAuth;     // FirevaseAuth 인스턴스 선언
+    // 현재 로그인 되어있는지 확인 ( 현재 사용자 불러오기 )
+    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     ArrayList<String> famsaylist = new ArrayList<String>();
 
@@ -64,16 +69,15 @@ public class MainActivity extends AppCompatActivity {
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
-                        String name = (String) document.getData().get("name");
-                        if (document != null) {
-                            if (document.exists()) {        // 사용자에 대한 정보가 존재하면
-                                Log.d(TAG, "DocumentSnapshot data: " + document.getData().get("name"));
-                                startToast(name + "님 환영합니다.");
-                            } else {
-                                Log.d(TAG, "No such document");
-                                startToast("회원정보를 등록해주세요");
-                                //myStartActivity(MemberinitActivity.class);      // 회원정보 등록 페이지(마이페이지)로 이동 ( 예정 )
-                            }
+                       //String name = (String) document.getData().get("name");
+                        if (document.exists()) {        // 사용자에 대한 정보가 존재하면
+                            String name = (String) document.getData().get("name");
+                            Log.d(TAG, "DocumentSnapshot data: " + document.getData().get("name"));
+                            startToast(name + "님 환영합니다.");
+                        } else {
+                            Log.d(TAG, "No such document");
+                            startToast("회원정보를 등록해주세요");
+                            //myStartActivity(MemberinitActivity.class);      // 회원정보 등록 페이지(마이페이지)로 이동 ( 예정 )
                         }
 
                     } else {

@@ -12,18 +12,32 @@ import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 //망각곡선 시간 가져오기
+import java.sql.Time;
 import java.util.Calendar;
 
 import java.util.ArrayList;
 
 public class Manggag extends AppCompatActivity {
-
-
     private static final String TAG = "Manggag";     // TAG 추가
+    public String subjectDocId;
+
+    public String fileName;
+    public String Subject;
+    public Timestamp studyTime;        // 시간 변수 ( Timestamp 형식 저장, Data형으로 변환 필요할 듯? )
+
     // 현재 로그인 되어있는지 확인 ( 현재 사용자 불러오기 )
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -33,7 +47,25 @@ public class Manggag extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manggag);
 
-        Drawgraph();
+        // Intent에서 선택한 과목 이름 & 파일 이름 받아오기
+        Subject = getIntent().getStringExtra("Subject");
+        fileName = getIntent().getStringExtra("fileName");
+
+        // 받아온 값을 통해 Subject Category Document ID 추출 -> 이지만 문제 발생으로 이 안에서 구현해야함.
+        ReturnSubjectDocRef(Subject);
+
+        // 타이틀 설정
+        setTitle("망각 진행률");
+
+        //값 전달 test
+        Log.d(TAG, "받아온 과목 이름 : " + Subject);
+        Log.d(TAG, "추출한 Subject Collection Document Id : " + subjectDocId );
+        Log.d(TAG, "받아온 파일 이름 : " + fileName);
+
+        // 공부 종료 시간 ( StudyEnd )을 FireStore로부터 얻어오는 메서드 : 주석 풀어보고 Test 해보기
+        //StudyTimeLoad(fileName, subjectDocId);
+
+        //Drawgraph();
     }
 
     //망각곡선 그리는 함수
@@ -52,7 +84,6 @@ public class Manggag extends AppCompatActivity {
         double hour2 = cal.get(Calendar.HOUR);
         double day2 = cal.get(Calendar.DAY_OF_MONTH);
         double month2 = cal.get(Calendar.MONTH) + 1;
-
 
 
         double minute = minute1 - minute2;
@@ -86,5 +117,62 @@ public class Manggag extends AppCompatActivity {
     private void startToast(String msg) {     // Toast 띄우는 함수
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
+
+    // 공부 종료 시간 ( StudyEnd )을 FireStore로부터 얻어오는 메서드
+    public void StudyTimeLoad (String fileName, String subjectDocId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference FileInfoDocRef = db.collection("users")   // 해당 파일의 문서 접근
+                .document(user.getUid())
+                .collection("SubjectCategory")
+                .document(subjectDocId)
+                .collection("FileInfo")
+                .document(fileName);
+
+        FileInfoDocRef.get().addOnCompleteListener(task -> {        // 비동기 접근
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    // 공부 종료 시간 불러오기
+                    studyTime = document.getTimestamp("StudyEnd");      // studyTime : 전역 변수
+                    Log.d(TAG,"Firestore : " + "StudyTime (공부 종료 시간)  : " + studyTime);
+                } else {
+                    Log.d(TAG,"Firestore : " + "No such document");
+                }
+            } else {
+                Log.d(TAG,"Firestore : "+ "Error getting document: ", task.getException());
+            }
+        });
+    }
+
+    // 과목 카테고리 해당 문서의 ID 반환 메서드
+    public void ReturnSubjectDocRef(String subject) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
+        DocumentReference userDocRef = userRef.document(user.getUid()); // 문서 참조 변수 : 현재 사용자 정보
+
+        userDocRef.collection("SubjectCategory")
+                .whereEqualTo("subject", subject)   // 받아온 값과 일치하는 문서 찾기
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                subjectDocId = document.getId();
+
+                                //StudyTimeLoad(fileName, subjectDocId);
+
+                                // 이 부분에 망각 곡선 작성 :onCreate() 함수부터 Test 바람
+
+                                Log.d(TAG,"ReturnDocRef 메서드 Return 값 : " + subjectDocId);
+                            }
+                        } else {
+                            Log.d(TAG, "ReturnDocRef 메서드 : Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+    }
+
 }
+
 

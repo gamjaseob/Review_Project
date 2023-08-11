@@ -11,9 +11,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        gradlePluginPortal()
     }
 }
 */
-
 rootProject.name = "Review_Project"
 include ':app'
