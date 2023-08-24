@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <!-- TextViews 수직 정렬 -->
+    <TextView
+        android:id="@+id/TimeCheck_Text1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:paddingTop="20dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="5dp"
+        android:gravity="center_horizontal"
+        />
+
+    <TextView
+        android:id="@+id/TimeCheck_Text2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:padding="2dp"
+        android:layout_below="@+id/TimeCheck_Text1"
+        android:gravity="center_horizontal"
+        />
+
+    <!-- Buttons 수평 정렬 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/TimeCheck_Text2"
+        android:layout_centerHorizontal="true"
+        android:padding="15dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/TimeCheck_Ok_Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="확인"
+            android:layout_marginEnd="20dp" />
+
+        <Button
+            android:id="@+id/TimeCheck_Back_Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="돌아가기"
+            android:layout_marginStart="20dp" />
+    </LinearLayout>
+
+    </RelativeLayout>
