@@ -210,7 +210,7 @@ public class SubjectCategory extends AppCompatActivity {
 
                         startToast("삭제할 과목을 선택하세요");
                         MenuButton.setVisibility(View.GONE);    // 버튼 숨기기
-                        Menu_XButton.setVisibility(View.GONE);   // 버튼 보여주기
+                        Menu_XButton.setVisibility(View.GONE);
                         SubjectAddButton.setVisibility(View.GONE);
                         SubjectDeleteButton.setVisibility(View.GONE);
                         SubjectDeleteButton_Ok.setVisibility(View.VISIBLE);
@@ -402,10 +402,11 @@ public class SubjectCategory extends AppCompatActivity {
 
                             // 어댑터에 데이터가 변경되었음을 알려줌
                             adapter.notifyDataSetChanged();
-                            startToast("과목 불러오기 성공");
+                            //startToast("과목 불러오기 성공");
+                            Log.d(TAG,"과목 불러오기 성공");
                         } else {
                             Log.d(TAG, "과목 불러오기 실패 : Error getting documents: ", task.getException());
-                            //startToast("과목 불러오기 실패" + "\n 다시 시도해 주세요.");
+                            startToast("과목 불러오기 실패" + "\n 다시 시도해 주세요.");
                         }
                     }
                 });
@@ -431,9 +432,6 @@ public class SubjectCategory extends AppCompatActivity {
         SubjectDeleteButton.setVisibility(View.GONE);
         SubjectDeleteButton_Back.setVisibility(View.GONE);
         SubjectDeleteButton_Ok.setVisibility(View.GONE);
-
-        CategoryLoad();
-
     }
 
     // FireStore에서 SubjectCategory, FileInfo 정보 삭제
