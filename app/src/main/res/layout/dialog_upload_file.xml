@@ -9,7 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        android:text="파일 이름을 입력해주세요. (특수문자 제외)"
         android:textSize="18sp" />
 
     <Button

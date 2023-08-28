@@ -22,7 +22,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -112,7 +111,7 @@ public class FileList_Manggag_view extends AppCompatActivity {
         private final List<StorageReference> files;
 
         public FileAdapter(Context context, List<StorageReference> files) {     // 생성자, 멤버변수 초기화
-            super(context, R.layout.list_file_item, files);
+            super(context, R.layout.list_item, files);
             this.context = context;
             this.files = files;
         }
@@ -124,10 +123,10 @@ public class FileList_Manggag_view extends AppCompatActivity {
 
             // 각 아이템 뷰에 해당하는 XML 파일을 inflate ( XML 파일 -> 실제 뷰 객체 )
             if (convertView == null) {
-                convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_file_item, parent, false);
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_item, parent, false);
             }
 
-            TextView filenameView = (TextView) convertView.findViewById(R.id.file_name);
+            TextView filenameView = (TextView) convertView.findViewById(R.id.item_name);
 
             // 파일 이름 가져와 나타내기
             filenameView.setText(fileRef.getName());
