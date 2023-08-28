@@ -13,6 +13,41 @@
 
     </ListView>
 
+    <!-- 메뉴 돌아가기(취소) 버튼-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/File_Menu_XButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
+        android:clickable="true"
+        app:backgroundTint="#8A67C8"
+        app:borderWidth="0dp"
+        app:elevation="8dp"
+        app:srcCompat="@android:drawable/ic_menu_revert" />
+
+    <!-- 메뉴 보기 버튼-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/File_MenuButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
+        android:clickable="true"
+        app:backgroundTint="#8A67C8"
+        app:borderWidth="0dp"
+        app:elevation="8dp"
+        app:srcCompat="?android:attr/actionModeFindDrawable" />
+
+    <!-- 파일 추가하기 버튼 -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/FileAddButton"
         android:layout_width="wrap_content"
@@ -22,11 +57,30 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="85dp"
         android:src="@drawable/baseline_add_24"
+        app:backgroundTint="#49B7C5"
         app:borderWidth="0dp"
         app:elevation="8dp" />
 
+    <!-- 파일 삭제하기 버튼-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/FileDeleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="150dp"
+        android:clickable="true"
+        app:backgroundTint="#E6675E"
+        app:borderWidth="0dp"
+        app:elevation="8dp"
+        app:srcCompat="@android:drawable/ic_menu_delete" />
+
+    <!-- 망각곡선 확인 버튼-->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/ManggagViewButton"
         android:layout_width="wrap_content"
@@ -36,11 +90,44 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="85dp"
+        android:layout_marginBottom="215dp"
         app:backgroundTint="#F3DE2D"
         app:borderWidth="0dp"
         app:elevation="8dp"
         app:srcCompat="@drawable/baseline_auto_graph_24" />
 
+    <!-- 파일 삭제 "취소" 버튼-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/FileDeleteButton_Back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
+        android:clickable="true"
+        app:backgroundTint="#E6675E"
+        app:borderWidth="0dp"
+        app:elevation="8dp"
+        app:srcCompat="@android:drawable/ic_menu_revert" />
+
+    <!-- 파일 삭제 "완료" 버튼-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/FileDeleteButton_OK"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="150dp"
+        android:clickable="true"
+        app:backgroundTint="#E6675E"
+        app:borderWidth="0dp"
+        app:elevation="8dp"
+        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
 </RelativeLayout>
