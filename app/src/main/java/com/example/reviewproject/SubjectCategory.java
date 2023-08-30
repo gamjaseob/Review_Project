@@ -61,7 +61,6 @@ public class SubjectCategory extends AppCompatActivity {
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     private ListView listView;
-    private ArrayAdapter<String> adapter;   // 어댑터 ( ListView와 데이터 배열의 다리 역할 )
     private FloatingActionButton SubjectAddButton;      // 과목 추가 버튼
     private FloatingActionButton SubjectDeleteButton;      // 과목 삭제 버튼
     private FloatingActionButton SubjectDeleteButton_Back;     // 과목 삭제 취소 버튼
