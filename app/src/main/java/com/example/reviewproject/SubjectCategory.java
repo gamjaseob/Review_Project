@@ -246,7 +246,7 @@ public class SubjectCategory extends AppCompatActivity {
                         TextView Text2 = Dialog_view.findViewById(R.id.TimeCheck_Text2);
 
                         String dynamicText1 = "정말로 삭제하시겠습니까?";      // TextView에 세팅하기위한 Text
-                        String dynamicText2 = "<확인>버튼을 클릭하면 하위 파일이 모두 삭제됩니다.";
+                        String dynamicText2 = "<확인>버튼을 클릭하면" + "\n하위 파일이 모두 삭제됩니다.";
                         Text1.setText(dynamicText1);    // 텍스트 설정
                         Text2.setText(dynamicText2);
 
