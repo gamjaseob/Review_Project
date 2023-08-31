@@ -559,10 +559,6 @@ public class FileList extends AppCompatActivity {
 
     }
 
-    private void DeleteFile() {
-        startToast("파일 삭제 메서드 실행");
-    }
-
     // 과목 카테고리 해당 문서의 ID 반환 메서드
     private void ReturnSubjectDocRef(String subject) {
 
