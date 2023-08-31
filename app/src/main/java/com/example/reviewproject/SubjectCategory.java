@@ -118,7 +118,7 @@ public class SubjectCategory extends AppCompatActivity {
         final List<Integer> selectedIndexes;     // 선택된 아이템의 인덱스를 저장할 리스트
 
         public SubjectAdapter(Context context, List<StorageReference> subject) {     // 생성자, 멤버변수 초기화
-            super(context, R.layout.list_item, subject);
+            super(context, R.layout.list_item_checkbox, subject);
             this.context = context;
             this.subject = subject;
             this.selectedItems = new SparseBooleanArray();
