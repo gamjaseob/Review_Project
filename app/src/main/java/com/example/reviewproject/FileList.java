@@ -198,7 +198,7 @@ public class FileList extends AppCompatActivity {
         final List<Integer> selectedIndexes;     // 선택된 아이템의 인덱스를 저장할 리스트
 
         public FileAdapter(Context context, List<StorageReference> files) {     // 생성자, 멤버변수 초기화
-            super(context, R.layout.list_item, files);
+            super(context, R.layout.list_item_checkbox, files);
             this.context = context;
             this.files = files;
             this.selectedItems = new SparseBooleanArray();
@@ -536,11 +536,14 @@ public class FileList extends AppCompatActivity {
 
         // 현재 시간 가져오기
         Date currentTime = Calendar.getInstance().getTime();
+        // 파일 경로 ( 과목 카테고리까지 )
+        String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
 
         Map<String, Object> FileInfoMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
-        FileInfoMap.put("SubjectCategoryId", subject);     // 해당 파일의 과목 카테고리(필드) 추가
-        FileInfoMap.put("FileName", FileName);  // 식별자로 사용
-        FileInfoMap.put("UploadDate", currentTime); // 파일 업로드날짜
+        FileInfoMap.put("SubjectCategoryId", subject);      // 해당 파일의 과목 카테고리(필드) 추가
+        FileInfoMap.put("FileName", FileName);              // 식별자로 사용
+        FileInfoMap.put("UploadDate", currentTime);         // 파일 업로드날짜
+        FileInfoMap.put("DirectoryPath", DirectoryPath);         // 파일 경로
 
         // FireStore : FileInfoRef Collection에 데이터 추가
         FileInfoRef.document(FileName).set(FileInfoMap)            // 데이터 추가 ( Collection : add / Document : set )

@@ -61,7 +61,6 @@ public class SubjectCategory extends AppCompatActivity {
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     private ListView listView;
-    private ArrayAdapter<String> adapter;   // 어댑터 ( ListView와 데이터 배열의 다리 역할 )
     private FloatingActionButton SubjectAddButton;      // 과목 추가 버튼
     private FloatingActionButton SubjectDeleteButton;      // 과목 삭제 버튼
     private FloatingActionButton SubjectDeleteButton_Back;     // 과목 삭제 취소 버튼
@@ -119,7 +118,7 @@ public class SubjectCategory extends AppCompatActivity {
         final List<Integer> selectedIndexes;     // 선택된 아이템의 인덱스를 저장할 리스트
 
         public SubjectAdapter(Context context, List<StorageReference> subject) {     // 생성자, 멤버변수 초기화
-            super(context, R.layout.list_item, subject);
+            super(context, R.layout.list_item_checkbox, subject);
             this.context = context;
             this.subject = subject;
             this.selectedItems = new SparseBooleanArray();
@@ -246,7 +245,7 @@ public class SubjectCategory extends AppCompatActivity {
                         TextView Text2 = Dialog_view.findViewById(R.id.TimeCheck_Text2);
 
                         String dynamicText1 = "정말로 삭제하시겠습니까?";      // TextView에 세팅하기위한 Text
-                        String dynamicText2 = "<확인>버튼을 클릭하면 하위 파일이 모두 삭제됩니다.";
+                        String dynamicText2 = "<확인>버튼을 클릭하면" + "\n하위 파일이 모두 삭제됩니다.";
                         Text1.setText(dynamicText1);    // 텍스트 설정
                         Text2.setText(dynamicText2);
 
