@@ -241,16 +241,16 @@ public class SubjectCategory extends AppCompatActivity {
                         builder.setView(Dialog_view);
 
                         // Dialog 의 TextvView, Button 추가
-                        TextView Text1 = Dialog_view.findViewById(R.id.TimeCheck_Text1);
-                        TextView Text2 = Dialog_view.findViewById(R.id.TimeCheck_Text2);
+                        TextView Text1 = Dialog_view.findViewById(R.id.Check_Text1);
+                        TextView Text2 = Dialog_view.findViewById(R.id.Check_Text2);
 
                         String dynamicText1 = "정말로 삭제하시겠습니까?";      // TextView에 세팅하기위한 Text
                         String dynamicText2 = "<확인>버튼을 클릭하면" + "\n하위 파일이 모두 삭제됩니다.";
                         Text1.setText(dynamicText1);    // 텍스트 설정
                         Text2.setText(dynamicText2);
 
-                        Button OKButton = Dialog_view.findViewById(R.id.TimeCheck_Ok_Button);            // 확인 버튼
-                        Button BackButton = Dialog_view.findViewById(R.id.TimeCheck_Back_Button);        // 돌아가기 버튼
+                        Button OKButton = Dialog_view.findViewById(R.id.Check_Ok_Button);            // 확인 버튼
+                        Button BackButton = Dialog_view.findViewById(R.id.Check_Back_Button);        // 돌아가기 버튼
 
                         // Dialog 생성
                         AlertDialog alertDialog = builder.create();     // 객체 생성

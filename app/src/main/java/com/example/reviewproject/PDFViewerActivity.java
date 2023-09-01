@@ -153,16 +153,16 @@ public class PDFViewerActivity extends AppCompatActivity {
         builder.setView(view);
 
         // Dialog 의 TextvView, Button 추가
-        TextView Text1 = view.findViewById(R.id.TimeCheck_Text1);          // 학습을 종료하시겠습니까?
-        TextView Text2 = view.findViewById(R.id.TimeCheck_Text2);           // <확인>버튼을 누르시면 학습 종료 시간이 기록됩니다.
+        TextView Text1 = view.findViewById(R.id.Check_Text1);          // 학습을 종료하시겠습니까?
+        TextView Text2 = view.findViewById(R.id.Check_Text2);           // <확인>버튼을 누르시면 학습 종료 시간이 기록됩니다.
 
         String dynamicText1 = "학습을 종료하시겠습니까?";      // TextView에 세팅하기위한 Text
         String dynamicText2 = "<확인>버튼을 클릭하면 학습 종료 시간이 기록됩니다.";
         Text1.setText(dynamicText1);    // 텍스트 설정
         Text2.setText(dynamicText2);
 
-        Button OKButton = view.findViewById(R.id.TimeCheck_Ok_Button);            // 확인 버튼
-        Button BackButton = view.findViewById(R.id.TimeCheck_Back_Button);        // 돌아가기 버튼
+        Button OKButton = view.findViewById(R.id.Check_Ok_Button);            // 확인 버튼
+        Button BackButton = view.findViewById(R.id.Check_Back_Button);        // 돌아가기 버튼
 
         // Dialog 생성
         AlertDialog alertDialog = builder.create();     // 객체 생성
