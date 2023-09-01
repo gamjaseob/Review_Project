@@ -30,7 +30,7 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";     // TAG 추가
-    private FirebaseAuth mAuth;     // FirevaseAuth 인스턴스 선언
+    private FirebaseAuth mAuth;     // FirebaseAuth 인스턴스 선언
     // 현재 로그인 되어있는지 확인 ( 현재 사용자 불러오기 )
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -88,7 +88,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         findViewById(R.id.logoutButton).setOnClickListener(onClickListener);  // 로그아웃 버튼 리스너 생성
-        findViewById(R.id.SubjectCategory).setOnClickListener(onClickListener);  // 과목 리스트 버튼 리스너 생성
+        findViewById(R.id.SubjectCategory).setOnClickListener(onClickListener);  // 학습하기(과목 리스트) 버튼 리스너 생성
+        findViewById(R.id.ReviewList).setOnClickListener(onClickListener);      // 복습하기 버튼 리스터 생성
         findViewById(R.id.studybtn).setOnClickListener(onClickListener);        //공부 버튼 리스너 생성
         findViewById(R.id.manggagbtn).setOnClickListener(onClickListener);        //망각곡선 버튼 리스너 생성
     }
@@ -103,8 +104,13 @@ public class MainActivity extends AppCompatActivity {
                     myStartActivity(LoginActivity.class);   // 로그인 화면 이동
                     break;
                 case R.id.SubjectCategory:
-                    myStartActivity(SubjectCategory.class);     // 과목리스트로 이동
+                    myStartActivity(SubjectCategory.class);     // 과목리스트로 이동 (학습하기)
                     break;
+
+                case R.id.ReviewList:           // 복습하기 리스트
+                    myStartActivity(Review_SubjectCategory.class);
+                    break;
+
                 case R.id.studybtn:
                     myStartActivity(Study.class);
                     break;
