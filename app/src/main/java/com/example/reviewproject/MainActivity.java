@@ -1,6 +1,7 @@
 package com.example.reviewproject;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
@@ -8,7 +9,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     //명언, 디데이
     TextView famsay; // 선언
 
+    private boolean Review;     // 복습하기 (집중모드) 여부 확인 변수
+
     int i = 0;
 
     @SuppressLint("MissingInflatedId")
@@ -49,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
 
         // 현재 로그인 되어있는지 확인 ( 현재 사용자 불러오기 )
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        Review = getIntent().getBooleanExtra("Review",Review);      // 초기값은 False
+        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
 
         //명언
         famsay = (TextView) findViewById(R.id.FamSay);
@@ -87,39 +95,57 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        findViewById(R.id.logoutButton).setOnClickListener(onClickListener);  // 로그아웃 버튼 리스너 생성
-        findViewById(R.id.SubjectCategory).setOnClickListener(onClickListener);  // 학습하기(과목 리스트) 버튼 리스너 생성
-        findViewById(R.id.ReviewList).setOnClickListener(onClickListener);      // 복습하기 버튼 리스터 생성
-        findViewById(R.id.studybtn).setOnClickListener(onClickListener);        //공부 버튼 리스너 생성
-        findViewById(R.id.manggagbtn).setOnClickListener(onClickListener);        //망각곡선 버튼 리스너 생성
-    }
+        Button logoutButton = findViewById(R.id.logoutButton);  // 로그아웃 버튼
+        Button SubjectCategory_Button = findViewById(R.id.SubjectCategory);  // 학습하기(과목 리스트) 버튼
+        Button ReviewList_Button = findViewById(R.id.ReviewList);      // 복습하기 버튼 리
+        Button manggag_Button = findViewById(R.id.manggagbtn);        //망각곡선 버튼
+        Button Study_button = findViewById(R.id.studybtn);       // 집중모드 리스너 생성
 
-    View.OnClickListener onClickListener = new View.OnClickListener() {     // 리스너 객체 생성 (클릭했을 때 반응)
-        @Override
-        public void onClick(View v) {   // 클릭했을때
-
-            switch (v.getId()) {
-                case R.id.logoutButton:            // 얻은 아이디가 로그아웃 버튼이면
-                    FirebaseAuth.getInstance().signOut();   // 로그아웃하기
-                    myStartActivity(LoginActivity.class);   // 로그인 화면 이동
-                    break;
-                case R.id.SubjectCategory:
-                    myStartActivity(SubjectCategory.class);     // 과목리스트로 이동 (학습하기)
-                    break;
-
-                case R.id.ReviewList:           // 복습하기 리스트
-                    myStartActivity(Review_SubjectCategory.class);
-                    break;
-
-                case R.id.studybtn:
-                    myStartActivity(Study.class);
-                    break;
-                case R.id.manggagbtn:
-                    myStartActivity(Manggag.class);
-                    break;
-            }
+        // '집중모드' 버튼 텍스트 변경
+        if(Review) {    // 집중모드가 이미 실행 중이면
+            Study_button.setText("집중모드 종료");
+        } else {
+            Study_button.setText("집중모드 시작");
         }
-    }; // 세미콜론 필수
+
+        // 로그아웃
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FirebaseAuth.getInstance().signOut();   // 로그아웃하기
+                myStartActivity(LoginActivity.class);   // 로그인 화면 이동
+            }
+        });
+
+        // 학습하기
+        SubjectCategory_Button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // 집중모드 여부 전달
+                Intent intent = new Intent(MainActivity.this, SubjectCategory.class);
+                intent.putExtra("Review", Review);      // 집중모드 여부 전달
+                startActivity(intent);
+            }
+        });
+
+        //복습하기
+        ReviewList_Button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) { myStartActivity(Review_SubjectCategory.class); }
+        });
+
+        // 집중모드
+        Study_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) { Study_Dialog(Study_button); }
+        });
+
+        // 망각곡선
+        manggag_Button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) { myStartActivity(Manggag.class); }
+        });
+    }
 
     private void myStartActivity(Class c) {    // 원하는 화면으로 이동하는 함수 (화면 이동 함수)
         Intent intent = new Intent(this, c);
@@ -159,5 +185,72 @@ public class MainActivity extends AppCompatActivity {
         famsaylist.add("명언8");
         famsaylist.add("명언9");
         famsaylist.add("명언10");
+    }
+    // '집중모드를 시작&종료 하시겠습니까?' 문구를 띄우는 Dialog
+    private void Study_Dialog(Button Study_button) {
+
+        String dynamicText1;    // 텍스트 설정
+        //String dynamicText2;
+
+        // Dialog Builder 생성
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        // Dialog 레이아웃 설정
+        View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_yes_or_back, null);
+        builder.setView(view);
+
+        // Dialog 의 TextvView, Button 추가
+        TextView Text1 = view.findViewById(R.id.Check_Text1);
+        //TextView Text2 = view.findViewById(R.id.Check_Text2);
+
+        if(Review) {    // 현재 집중모드일 경우
+            dynamicText1 = "<집중모드>를 종료하시겠습니까?";
+
+        } else   // 현재 집중모드가 아닐 경우
+        {
+            dynamicText1 = "<집중모드>를 시작하시겠습니까?";
+        }
+
+        Text1.setText(dynamicText1);    // 텍스트 설정
+
+        Button OKButton = view.findViewById(R.id.Check_Ok_Button);            // 확인 버튼
+        Button BackButton = view.findViewById(R.id.Check_Back_Button);        // 돌아가기 버튼
+
+        // Dialog 생성
+        AlertDialog alertDialog = builder.create();     // 객체 생성
+        alertDialog.show();         // 사용자에게 보여주기
+
+        // 확인 버튼 클릭
+        OKButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(Review) {    // 현재 집중모드일 경우 -> 집중모드 종료하기
+                    startToast("집중모드 Off");
+                    Study_button.setText("집중모드 시작");
+                    Review = false;
+
+                } else   // 현재 집중모드가 아닐 경우 -> 집중모드 시작하기
+                {
+                    startToast("집중모드 ON");
+                    Study_button.setText("집중모드 종료");
+                    Review = true;
+
+                    // 집중모드 실행로직
+
+                }
+
+                alertDialog.dismiss();      // Dialog창 닫기
+
+            }
+        });
+
+        // 돌아가기 버튼 클릭 : 이전 화면으로 되돌아가기
+        BackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();      // Dialog창 닫기
+            }
+        });
+
     }
 }
