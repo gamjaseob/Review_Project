@@ -67,6 +67,7 @@ public class SubjectCategory extends AppCompatActivity {
     private FloatingActionButton SubjectDeleteButton_Ok;     // 과목 삭제 완료 버튼
     private FloatingActionButton MenuButton;        // 메뉴 선택 버튼
     private FloatingActionButton Menu_XButton;      // 메뉴 선택 취소 버튼
+    private boolean Review; // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
 
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -103,6 +104,10 @@ public class SubjectCategory extends AppCompatActivity {
 
         // 리스트뷰와 어댑터 초기화
         listView = (ListView) findViewById(R.id.SubjectList);
+
+        // intent에서 데이터 받아오기
+        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 (집중모드) 여부
+        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
 
         // 카테고리 목록 불러오기
         CategoryLoad();
@@ -193,7 +198,9 @@ public class SubjectCategory extends AppCompatActivity {
                         // 선택한 항목의 정보를 Intent에 담아 File.Class를 시작
                         Intent intent = new Intent(SubjectCategory.this, FileList.class);
                         intent.putExtra("selectedSubject", selectedSubject);    // 과목이름 전달
+                        intent.putExtra("Review", Review);      // 집중모드 여부 전달
                         Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
+                        Log.d(TAG, "전달한 복습하기 리스트 (집중모드) 여부 : " + Review);
 
                         startActivity(intent);
                     }
@@ -330,8 +337,24 @@ public class SubjectCategory extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         String subject = editText.getText().toString();
-                        CategoryStore(subject);         // 입력한 과목을 FireStore에 저장
-                        CategoryLoad();
+
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();     // FireStore 인스턴스 가져오기
+                        CollectionReference SubjectRef = db.collection("users")   // 해당 파일의 문서 접근
+                                .document(user.getUid())
+                                .collection("SubjectCategory");
+
+                        Query query = SubjectRef.whereEqualTo("subject", subject);
+
+                        query.get().addOnCompleteListener(task -> {
+                            if (task.getResult().isEmpty()) {   // 쿼리 결과가 없다 = 중복되는 내용이 없다.
+                                // 중복되는 내용이 아닌 경우
+                                CategoryStore(subject);         // 입력한 과목을 FireStore에 저장
+                                CategoryLoad();
+                            } else {
+                                // 중복되는 내용인 경우
+                                startToast("중복되는 과목입니다." + "\n 다른 이름을 입력해주세요.");
+                            }
+                        });
                    }
                 })
                 .setNegativeButton("취소",null);
@@ -409,10 +432,6 @@ public class SubjectCategory extends AppCompatActivity {
                         }
                     }
                 });
-    }
-    private void myStartActivity(Class c) {    // 원하는 화면으로 이동하는 함수 (화면 이동 함수)
-        Intent intent = new Intent(this, c);
-        startActivity(intent);
     }
 
     // 메뉴 선택하기 버튼 : 나머지 다른 옵션(과목 추가,삭제) 버튼들이 나오도록 함.
