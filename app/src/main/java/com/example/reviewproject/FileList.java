@@ -71,14 +71,18 @@ public class FileList extends AppCompatActivity {
     private String fileName;         // 파일 이름
     private String Subject;          // 해당 과목
     private MutableLiveData<Uri> selectedFileUri;       // File Uri
+    private boolean Review;     // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_list);
 
-        // Intent에서 선택한 과목 이름 받아오기
+        Review = false;         // 복습하기 리스트 아님
+
+        // Intent에서 데이터 받아오기
         Subject = getIntent().getStringExtra("selectedSubject");
+        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 여부
 
         // 받아온 값을 통해 Subject Category Document ID 추출
         ReturnSubjectDocRef(Subject);
@@ -88,6 +92,7 @@ public class FileList extends AppCompatActivity {
 
         //값 전달 test
         Log.d(TAG, "받아온 과목 이름 : " + Subject);
+        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
         Log.d(TAG, "추출한 Subject Collection DocumentID : " + subjectDocId);  // 여기가 왜 null인지 모르겠다.
 
         selectedFileUri = new MutableLiveData<>();     // 사용자가 선택한 파일의 URI 변수
@@ -280,6 +285,9 @@ public class FileList extends AppCompatActivity {
                         intent.putExtra("DirectoryPath", DirectoryPath);
                         intent.putExtra("fileName", fileName);
                         intent.putExtra("Subject", Subject);    // 과목이름 전달
+                        intent.putExtra("Review", Review);      // 집중모드 여부 전달
+
+                        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
                         startActivity(intent);
                     }
                 }
@@ -446,8 +454,6 @@ public class FileList extends AppCompatActivity {
             public void onClick(View v) {
                 // EditText에서 파일 이름 가져오기
                 fileName = fileNameEditText.getText().toString();
-                // 파일 정보 FireStore에 저장
-                UploadFireStore(fileName,Subject);
 
                 // 선택한 파일이 없는 경우 오류 메시지 출력
                 if (selectedFileUri.getValue() == null) {
@@ -455,28 +461,47 @@ public class FileList extends AppCompatActivity {
                     return;
                 }
 
-                // Firebase Storage에 업로드
-                FirebaseStorage storage = FirebaseStorage.getInstance();
-                StorageReference storageRef = storage.getReference()
-                        .child("users/" + user.getUid() + "/Subject/" + Subject)
-                        .child(fileName);
-                storageRef.putFile(selectedFileUri.getValue())
-                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                // 업로드 완료 시 메시지 출력
-                                startToast("파일 업로드 완료");
-                                getFileList(Subject);       // 업로드 후 리스트 다시 불러오기
-                                alertDialog.dismiss();      // Dialog창 닫기
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                // 업로드 실패 시 오류 메시지 출력
-                                startToast("파일 업로드 실패, 다시 시도해 주세요.");
-                            }
-                        });
+                CollectionReference FileInfoRef = db.collection("users")   // 해당 파일의 문서 접근
+                        .document(user.getUid())
+                        .collection("SubjectCategory")
+                        .document(subjectDocId)
+                        .collection("FileInfo");
+
+                Query query = FileInfoRef.whereEqualTo("FileName", fileName);
+
+                query.get().addOnCompleteListener(task -> {
+                    if (task.getResult().isEmpty()) {   // 쿼리 결과가 없다 = 중복되는 내용이 없다.
+                        // 중복되는 내용이 아닌 경우
+                        UploadFireStore(fileName,Subject);         // 파일 정보를 FireStore에 저장
+
+                        // Firebase Storage에 업로드
+                        FirebaseStorage storage = FirebaseStorage.getInstance();
+                        StorageReference storageRef = storage.getReference()
+                                .child("users/" + user.getUid() + "/Subject/" + Subject)
+                                .child(fileName);
+                        storageRef.putFile(selectedFileUri.getValue())
+                                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                        // 업로드 완료 시 메시지 출력
+                                        startToast("파일 업로드 완료");
+                                        getFileList(Subject);       // 업로드 후 리스트 다시 불러오기
+                                        alertDialog.dismiss();      // Dialog창 닫기
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        // 업로드 실패 시 오류 메시지 출력
+                                        startToast("파일 업로드 실패, 다시 시도해 주세요.");
+                                    }
+                                });
+
+                    } else {
+                        // 중복되는 내용인 경우
+                        startToast("중복되는 파일 이름입니다." + "\n 다른 이름을 입력해주세요.");
+                    }
+                });
             }
         });
         // 취소 버튼
