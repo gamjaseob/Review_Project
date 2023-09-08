@@ -1,5 +1,6 @@
 package com.example.reviewproject;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -47,8 +48,8 @@ public class PDFViewerActivity extends AppCompatActivity {
     public String fileName;         // 파일 이름
     private PDFView pdfView;    // PDF Viewer 컨테이너 객체
     private String DirectoryPath;     // 파일이 존재하는 디렉토리 경로
-
     private File viewFile;  // 뷰어에 띄울 임시파일 변수
+    private boolean Review;     // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
 
     @Override
     public void onBackPressed() {       // 뒤로가기 눌렀을 때
@@ -71,6 +72,7 @@ public class PDFViewerActivity extends AppCompatActivity {
         DirectoryPath = getIntent().getStringExtra("DirectoryPath");
         fileName = getIntent().getStringExtra("fileName");
         Subject = getIntent().getStringExtra("Subject");
+        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 여부
 
         // 받아온 값(Subject)을 통해 Subject Category Document ID 추출
         ReturnSubjectDocRef(Subject);
@@ -79,7 +81,17 @@ public class PDFViewerActivity extends AppCompatActivity {
         Log.d(TAG, "DirectoryPath: 받아온 파일 경로 : " + DirectoryPath);
         Log.d(TAG, "fileName: 받아온 파일 이름 : " + fileName);
         Log.d(TAG, "Subject: 받아온 과목 이름 : " + Subject);
+        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
         Log.d(TAG, "추출한 Subject Collection DocumentID : " + subjectDocId);  // 여기가 왜 null인지 모르겠다.
+
+        if(Review){     // 집중모드일 경우
+
+
+
+            // 집중모드 실행 메서드
+
+
+        }
 
 
         // PDF Viewer 객체
@@ -144,9 +156,10 @@ public class PDFViewerActivity extends AppCompatActivity {
     // '학습을 종료하시겠습니까?' 문구를 띄우는 Dialog : 학습 종료 시간 기록
     private void TimeCheck_Dialog() {
 
+        String dynamicText2;    // 텍스트 설정
+
         // Dialog Builder 생성
         AlertDialog.Builder builder = new AlertDialog.Builder(PDFViewerActivity.this);
-        //builder.setTitle("학습 종료");
 
         // Dialog 레이아웃 설정
         View view = LayoutInflater.from(PDFViewerActivity.this).inflate(R.layout.dialog_yes_or_back, null);
@@ -157,7 +170,15 @@ public class PDFViewerActivity extends AppCompatActivity {
         TextView Text2 = view.findViewById(R.id.Check_Text2);           // <확인>버튼을 누르시면 학습 종료 시간이 기록됩니다.
 
         String dynamicText1 = "학습을 종료하시겠습니까?";      // TextView에 세팅하기위한 Text
-        String dynamicText2 = "<확인>버튼을 클릭하면 학습 종료 시간이 기록됩니다.";
+
+        if(Review) {    // '복습하기' 리스트 OR 집중모드에서 실행한 PDF 뷰어라면
+            dynamicText2 = "<확인>버튼을 클릭하면 " +"\n 학습태도 분석 결과가 출력됩니다.";
+
+        } else   // '학습하기' 리스트 OR 집중모드 X에서 실행한 PDF 뷰어라면
+        {
+            dynamicText2 = "<확인>버튼을 클릭하면 학습 종료 시간이 기록됩니다.";
+        }
+
         Text1.setText(dynamicText1);    // 텍스트 설정
         Text2.setText(dynamicText2);
 
@@ -168,14 +189,31 @@ public class PDFViewerActivity extends AppCompatActivity {
         AlertDialog alertDialog = builder.create();     // 객체 생성
         alertDialog.show();         // 사용자에게 보여주기
 
-        // 확인 버튼 클릭 : 학습 종료 시간 기록하기
+        // 확인 버튼 클릭 : 학습 종료 시간 기록하기 OR 학습태도 분석 결과 출력
         OKButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startToast("학습 종료 시간이 기록되었습니다.");
                 TimeStore(fileName);        // FireStore에 공부시간 기록 메서드
                 alertDialog.dismiss();      // Dialog창 닫기
-                finish();           // 이전 액티비티로 돌아가기
+
+                if(Review) {     // '복습하기' 리스트(집중모드 O)에서 실행한 PDF 뷰어라면
+
+                    // 학습태도 분석 로직 넣기
+
+
+                    // 학습태도 분석 결과로 이동
+                    // Intent를 생성하고 파일 경로 값을 설정하여 Study_Result로 전달
+                    Intent intent = new Intent(PDFViewerActivity.this, Study_Result.class);
+                    intent.putExtra("DirectoryPath", DirectoryPath);
+                    intent.putExtra("fileName", fileName);
+                    intent.putExtra("Subject", Subject);    // 과목이름 전달
+                    intent.putExtra("Review", Review);      // 복습하기 리스트 여부 전달
+                    startActivity(intent);
+
+                }else {     // '학습하기' 리스트(집중모드 X)에서 실행한 PDF 뷰어라면
+                    finish();           // 이전 액티비티로 돌아가기
+                }
+
             }
         });
 
@@ -186,7 +224,6 @@ public class PDFViewerActivity extends AppCompatActivity {
                 alertDialog.dismiss();      // Dialog창 닫기
             }
         });
-
     }
     // '확인'버튼 클릭 시, 공부 종료시간을 Firestore에 저장하는 함수
     public void TimeStore(String fileName) {
@@ -253,6 +290,5 @@ public class PDFViewerActivity extends AppCompatActivity {
     private void startToast(String msg) {     // Toast 띄우는 함수
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
-
 
 }
