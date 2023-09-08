@@ -59,6 +59,7 @@ public class SubjectCategory extends AppCompatActivity {
 
     // 현재 로그인 되어있는지 확인 ( 현재 사용자 불러오기 )
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     private ListView listView;
     private FloatingActionButton SubjectAddButton;      // 과목 추가 버튼
@@ -252,7 +253,7 @@ public class SubjectCategory extends AppCompatActivity {
                         TextView Text2 = Dialog_view.findViewById(R.id.Check_Text2);
 
                         String dynamicText1 = "정말로 삭제하시겠습니까?";      // TextView에 세팅하기위한 Text
-                        String dynamicText2 = "<확인>버튼을 클릭하면" + "\n하위 파일이 모두 삭제됩니다.";
+                        String dynamicText2 = "<확인>버튼을 클릭하면" + "\n하위 파일이 모두 삭제되며," + "\n 복습리스트에서도 삭제됩니다.";
                         Text1.setText(dynamicText1);    // 텍스트 설정
                         Text2.setText(dynamicText2);
 
@@ -500,13 +501,96 @@ public class SubjectCategory extends AppCompatActivity {
                                 // 상위 문서 삭제 실패
                                 Log.d(TAG, "FireStore 과목 삭제 실패 : " + e.getMessage());
                             });
+
+                    // 복습하기 리스트에도 존재할 경우, 함께 삭제
+                    Check_Delete_ReviewList(SubjectToDelete, documentId);
                 }
             } else {
                 // 과목 카테고리 검색 실패 시 처리 ( Query )
                 System.out.println("쿼리 실패: " + task.getException().getMessage());
             }
         });
+
     }
+
+    // 삭제할 과목이 복습하기 리스트에도 존재하는지 확인하고 삭제하는 메서드
+    private void Check_Delete_ReviewList(String SubjectToDelete, String subjectDocId) {
+
+        CollectionReference userRef = db.collection("users");
+        DocumentReference userDocRef = userRef.document(user.getUid());
+
+        // Review_SubjectCategory 컬렉션 접근
+        CollectionReference Review_subjectCategoryRef = userDocRef
+                .collection("Review_SubjectCategory");
+
+        Query query = Review_subjectCategoryRef.whereEqualTo("subject", SubjectToDelete);     // 받아온 값과 일치하는 문서 찾기
+
+        query.get().addOnCompleteListener(task -> {
+                    if (task.getResult().isEmpty()) {   // 쿼리 결과가 없다 == 복습하기 리스트에 없다.
+                        // 복습하기 리스트에 없는 경우 : Pass
+                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : 복습하기 리스트에 존재하지않음 : " + SubjectToDelete + " : 삭제 Pass");
+                    } else {
+                        // 복습하기 리스트에 있는 경우 : 함께 삭제
+                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : 복습하기 리스트에 존재 : " + SubjectToDelete + " : 삭제 완료");
+
+                        // 복습하기 리스트 삭제 로직
+                        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                        String subjectDocId = document.getId();    // 아이디 구하기
+                                        Log.d(TAG, " Check_Delete_ReviewList 메서드 subjectDocId : " + subjectDocId + " : " + SubjectToDelete);
+
+                                        // 과목 카테고리 삭제 (문서 삭제)
+                                        Review_subjectCategoryRef.document(subjectDocId)
+                                                .delete()
+                                                .addOnSuccessListener(aVoid -> {
+                                                    // 상위 문서 (과목 카테고리) 삭제 성공 시 처리
+                                                    //startToast("FireStore (복습 필요) 과목 삭제 성공");
+                                                    Log.d(TAG, "FireStore 복습리스트 과목 삭제 성공 : " + SubjectToDelete);
+
+                                                    //Log.d(TAG, "Delete_FireStore : CategoryLoad() 메서드 실행");
+
+                                                }).addOnFailureListener(e -> {
+                                                    // 상위 문서 삭제 실패
+                                                    Log.d(TAG, "FireStore 복습리스트 과목 삭제 실패 : " + SubjectToDelete + " : " + e.getMessage());
+                                                });
+
+                                        // Review_FileInfo 컬렉션 접근
+                                        CollectionReference Review_FileInfoRef = Review_subjectCategoryRef
+                                                .document(subjectDocId)
+                                                .collection("Review_FileInfo");
+
+                                        // 하위 컬렉션의 모든 문서를 쿼리하고 삭제
+                                        Review_FileInfoRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
+                                            for (QueryDocumentSnapshot subDocument : queryDocumentSnapshots) {
+                                                subDocument.getReference().delete()
+                                                        .addOnSuccessListener(aVoid1 -> {
+                                                            // 하위 컬렉션 문서 삭제 성공
+                                                            Log.d(TAG, "FireStore 복습리스트 파일 삭제 성공 : " + SubjectToDelete);
+                                                            //startToast("Review_FileInfo 문서 삭제 성공");
+                                                        })
+                                                        .addOnFailureListener(e -> {
+                                                            // 하위 컬렉션 문서 삭제 실패
+                                                            Log.d(TAG, "FireStore 복습리스트 파일 삭제 실패 : " + SubjectToDelete + " : " + e.getMessage());
+                                                            //startToast("Review_FileInfo 문서 삭제 실패");
+                                                        });
+                                            }
+                                        }).addOnFailureListener(e -> {
+                                            // 하위 컬렉션 쿼리 실패
+                                            Log.d(TAG, SubjectToDelete + " : Review_FileInfo 문서 쿼리 실패 " + e.getMessage());
+                                        });
+                                    }
+                                } else {    // 쿼리 실패한 경우
+                                    Log.d(TAG, "Check_Delete_ReviewList 메서드 쿼리 실패 : Error getting documents: ", task.getException());
+                                }
+                            }
+                        });
+                    }
+                });
+    }
+
     // Storage에서 해당 디렉토리와 파일 삭제
     private void deleteCategory(String SubjectToDelete) {
         // * Storage 참조 변수 생성
