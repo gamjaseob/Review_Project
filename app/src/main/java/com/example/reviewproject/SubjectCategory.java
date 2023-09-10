@@ -503,7 +503,7 @@ public class SubjectCategory extends AppCompatActivity {
                             });
 
                     // 복습하기 리스트에도 존재할 경우, 함께 삭제
-                    Check_Delete_ReviewList(SubjectToDelete, documentId);
+                    Check_Delete_ReviewList(SubjectToDelete);
                 }
             } else {
                 // 과목 카테고리 검색 실패 시 처리 ( Query )
@@ -514,7 +514,7 @@ public class SubjectCategory extends AppCompatActivity {
     }
 
     // 삭제할 과목이 복습하기 리스트에도 존재하는지 확인하고 삭제하는 메서드
-    private void Check_Delete_ReviewList(String SubjectToDelete, String subjectDocId) {
+    private void Check_Delete_ReviewList(String SubjectToDelete) {
 
         CollectionReference userRef = db.collection("users");
         DocumentReference userDocRef = userRef.document(user.getUid());
