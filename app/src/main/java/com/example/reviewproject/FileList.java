@@ -653,12 +653,60 @@ public class FileList extends AppCompatActivity {
                                 Log.d(TAG,FileToDelete + " : FireStore 파일 삭제 실패 : " + e.getMessage());
                             });
                 }
+
+                // 복습하기 리스트에도 존재할 경우, 함께 삭제
+                Check_Delete_ReviewList(FileToDelete, Subject);
+
             } else {
                 // 파일리스트 검색 실패 시 처리 ( Query )
                 System.out.println("파일리스트 쿼리 실패: " + task.getException().getMessage());
             }
         });
     }
+
+    // 삭제할 과목이 복습하기 리스트에도 존재하는지 확인하고 삭제하는 메서드
+    private void Check_Delete_ReviewList(String FileToDelete, String Subject) {
+
+        CollectionReference userRef = db.collection("users");
+        DocumentReference userDocRef = userRef.document(user.getUid());
+
+        // Review_SubjectCategory 컬렉션 접근
+        CollectionReference Review_subjectCategoryRef = userDocRef
+                .collection("Review_SubjectCategory");
+
+        // 복습하기 리스트의 '과목' 먼저 접근
+        Query Subject_query = Review_subjectCategoryRef.whereEqualTo("subject", Subject);
+
+        Subject_query.get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // 일치하는 문서를 찾았을 때 삭제 ( 과목 카테고리 )
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+
+                            // 해당 과목 문서 ID 추출
+                            String documentId = document.getId();
+
+                            // Review_FileInfo 컬렉션 접근 ( 하위 컬렉션 접근 )
+                            CollectionReference Review_FileInfoRef = Review_subjectCategoryRef
+                                    .document(documentId)
+                                    .collection("Review_FileInfo");
+
+                            // 해당 파일 삭제
+                            Review_FileInfoRef.document(FileToDelete)
+                                    .delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        //startToast("FireStore (복습 필요) 파일 삭제 성공");
+                                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : FireStore 복습리스트 파일 삭제 성공 : " + FileToDelete);
+
+                                    }).addOnFailureListener(e -> {
+                                        // 상위 문서 삭제 실패
+                                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : FireStore 복습리스트 과목 삭제 실패 : " + FileToDelete + " : " + e.getMessage());
+                                    });
+                        }
+                    }
+                });
+
+    }
+
     // Storage에서 해당 파일 삭제
     private void TodeleteFile(String FileToDelete) {
         // * Storage 참조 변수 생성
