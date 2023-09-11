@@ -9,6 +9,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
@@ -30,8 +31,10 @@ import java.util.Calendar;
 
 import java.util.ArrayList;
 import java.util.Date;
+
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class Manggag extends AppCompatActivity {
     private static final String TAG = "Manggag";     // TAG 추가
@@ -59,7 +62,7 @@ public class Manggag extends AppCompatActivity {
         ReturnSubjectDocRef(Subject);
 
         // 타이틀 설정
-        setTitle("망각 진행률");
+        //setTitle(fileName + " 망각 진행률");
 
         //값 전달 test
         Log.d(TAG, "받아온 과목 이름 : " + Subject);
@@ -76,13 +79,10 @@ public class Manggag extends AppCompatActivity {
     }
 
     //망각곡선 그리는 함수
-    private void Drawgraph() {
-        Intent getInt = getIntent();
-        int i = getInt.getIntExtra("count", 0);
+    private void Drawgraph(Calendar cal) {
+        Calendar c = Calendar.getInstance();
 
-        Calendar cal = Calendar.getInstance();
-        Calendar c = cal;
-        double minute1 = c.get(Calendar.MINUTE) + 5;
+        double minute1 = c.get(Calendar.MINUTE) + 1;
         double hour1 = c.get(Calendar.HOUR);
         double day1 = c.get(Calendar.DAY_OF_MONTH);
         double month1 = c.get(Calendar.MONTH) + 1;
@@ -102,7 +102,7 @@ public class Manggag extends AppCompatActivity {
 
         //double  = 184 / (Math.pow(Math.log(120.0), 1.25) + 1.84);
 
-        LineChart chart = findViewById(R.id.chart);
+        LineChart lineChart = findViewById(R.id.chart);
 
         ArrayList<Entry> entries = new ArrayList<>();
 
@@ -117,8 +117,10 @@ public class Manggag extends AppCompatActivity {
 
         LineDataSet dataSet = new LineDataSet(entries, "망각진행률");
         LineData lineData = new LineData(dataSet);
-        chart.setData(lineData);
-        chart.invalidate();
+        lineChart.setData(lineData);
+
+
+        lineChart.invalidate();
     }
 
     private void startToast(String msg) {     // Toast 띄우는 함수
@@ -148,6 +150,16 @@ public class Manggag extends AppCompatActivity {
             } else {
                 Log.d(TAG,"Firestore : "+ "Error getting document: ", task.getException());
             }
+
+            //그래프 그리기 위한 데이터 변환
+            Date date = studyTime.toDate();
+
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+
+            cal.add(Calendar.HOUR, -3);
+
+            Drawgraph(cal);
         });
     }
 
