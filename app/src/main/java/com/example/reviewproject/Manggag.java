@@ -142,10 +142,10 @@ public class Manggag extends AppCompatActivity {
             } else {
                 Log.d(TAG,"Firestore : "+ "Error getting document: ", task.getException());
             }
-            
+
             //그래프 그리기 위한 데이터 변환
             Date date = studyTime.toDate();
-            
+
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
 

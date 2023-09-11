@@ -23,7 +23,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="30dp">
 
@@ -51,22 +51,21 @@
                 android:layout_height="wrap_content"
                 android:text="망각곡선" />
 
-            <LinearLayout
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/FamSay"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/FamSay"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="FamousSaying"
-                    android:textAlignment="center"
-                    android:textSize="34sp" />
-
-            </LinearLayout>
-
+                android:layout_height="156dp"
+                android:layout_weight="1"
+                android:freezesText="false"
+                android:text="FamousSaying"
+                android:textAlignment="center"
+                android:textSize="20sp" />
 
         </LinearLayout>
 

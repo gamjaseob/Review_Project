@@ -143,15 +143,15 @@ public class MainActivity extends AppCompatActivity {
 
     //명언 추가 함수
     private void FamSayAdd() {
-        famsaylist.add("명언1");
-        famsaylist.add("명언2");
-        famsaylist.add("명언3");
-        famsaylist.add("명언4");
-        famsaylist.add("명언5");
-        famsaylist.add("명언6");
-        famsaylist.add("명언7");
-        famsaylist.add("명언8");
-        famsaylist.add("명언9");
-        famsaylist.add("명언10");
+        famsaylist.add("미래는 꿈의 아름다움을 믿는 자의 것입니다");
+        famsaylist.add("끝날 때까지 항상 불가능해 보인다");
+        famsaylist.add("노력을 대신할 수 있는 것은 없습니다");
+        famsaylist.add("열심히 하면 할수록 행운도 더 많이 옵니다");
+        famsaylist.add("탁월함은 기술이 아니라 태도입니다");
+        famsaylist.add("성적이나 결과는 행동이 아니라 습관입니다");
+        famsaylist.add("핑계를 댈 때가 아니다");
+        famsaylist.add("걱정은 작은 것에 큰 그림자를 준다");
+        famsaylist.add("의심은 실패보다 더 많은 꿈을 죽인다");
+        famsaylist.add("공부가 뭐 대수냐 후회가 무서운거지");
     }
 }
