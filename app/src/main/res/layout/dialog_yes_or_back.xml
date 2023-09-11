@@ -6,7 +6,7 @@
 
     <!-- TextViews 수직 정렬 -->
     <TextView
-        android:id="@+id/TimeCheck_Text1"
+        android:id="@+id/Check_Text1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#000000"
@@ -19,13 +19,13 @@
         />
 
     <TextView
-        android:id="@+id/TimeCheck_Text2"
+        android:id="@+id/Check_Text2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#000000"
         android:textSize="18sp"
         android:padding="2dp"
-        android:layout_below="@+id/TimeCheck_Text1"
+        android:layout_below="@+id/Check_Text1"
         android:gravity="center_horizontal"
         />
 
@@ -33,20 +33,20 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/TimeCheck_Text2"
+        android:layout_below="@+id/Check_Text2"
         android:layout_centerHorizontal="true"
         android:padding="15dp"
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/TimeCheck_Ok_Button"
+            android:id="@+id/Check_Ok_Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="확인"
             android:layout_marginEnd="20dp" />
 
         <Button
-            android:id="@+id/TimeCheck_Back_Button"
+            android:id="@+id/Check_Back_Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="돌아가기"

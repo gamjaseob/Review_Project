@@ -59,6 +59,7 @@ public class SubjectCategory extends AppCompatActivity {
 
     // 현재 로그인 되어있는지 확인 ( 현재 사용자 불러오기 )
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     private ListView listView;
     private FloatingActionButton SubjectAddButton;      // 과목 추가 버튼
@@ -67,6 +68,7 @@ public class SubjectCategory extends AppCompatActivity {
     private FloatingActionButton SubjectDeleteButton_Ok;     // 과목 삭제 완료 버튼
     private FloatingActionButton MenuButton;        // 메뉴 선택 버튼
     private FloatingActionButton Menu_XButton;      // 메뉴 선택 취소 버튼
+    private boolean Review; // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
 
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -103,6 +105,10 @@ public class SubjectCategory extends AppCompatActivity {
 
         // 리스트뷰와 어댑터 초기화
         listView = (ListView) findViewById(R.id.SubjectList);
+
+        // intent에서 데이터 받아오기
+        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 (집중모드) 여부
+        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
 
         // 카테고리 목록 불러오기
         CategoryLoad();
@@ -193,7 +199,9 @@ public class SubjectCategory extends AppCompatActivity {
                         // 선택한 항목의 정보를 Intent에 담아 File.Class를 시작
                         Intent intent = new Intent(SubjectCategory.this, FileList.class);
                         intent.putExtra("selectedSubject", selectedSubject);    // 과목이름 전달
+                        intent.putExtra("Review", Review);      // 집중모드 여부 전달
                         Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
+                        Log.d(TAG, "전달한 복습하기 리스트 (집중모드) 여부 : " + Review);
 
                         startActivity(intent);
                     }
@@ -241,16 +249,16 @@ public class SubjectCategory extends AppCompatActivity {
                         builder.setView(Dialog_view);
 
                         // Dialog 의 TextvView, Button 추가
-                        TextView Text1 = Dialog_view.findViewById(R.id.TimeCheck_Text1);
-                        TextView Text2 = Dialog_view.findViewById(R.id.TimeCheck_Text2);
+                        TextView Text1 = Dialog_view.findViewById(R.id.Check_Text1);
+                        TextView Text2 = Dialog_view.findViewById(R.id.Check_Text2);
 
                         String dynamicText1 = "정말로 삭제하시겠습니까?";      // TextView에 세팅하기위한 Text
-                        String dynamicText2 = "<확인>버튼을 클릭하면" + "\n하위 파일이 모두 삭제됩니다.";
+                        String dynamicText2 = "<확인>버튼을 클릭하면" + "\n하위 파일이 모두 삭제되며," + "\n 복습리스트에서도 삭제됩니다.";
                         Text1.setText(dynamicText1);    // 텍스트 설정
                         Text2.setText(dynamicText2);
 
-                        Button OKButton = Dialog_view.findViewById(R.id.TimeCheck_Ok_Button);            // 확인 버튼
-                        Button BackButton = Dialog_view.findViewById(R.id.TimeCheck_Back_Button);        // 돌아가기 버튼
+                        Button OKButton = Dialog_view.findViewById(R.id.Check_Ok_Button);            // 확인 버튼
+                        Button BackButton = Dialog_view.findViewById(R.id.Check_Back_Button);        // 돌아가기 버튼
 
                         // Dialog 생성
                         AlertDialog alertDialog = builder.create();     // 객체 생성
@@ -330,8 +338,24 @@ public class SubjectCategory extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         String subject = editText.getText().toString();
-                        CategoryStore(subject);         // 입력한 과목을 FireStore에 저장
-                        CategoryLoad();
+
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();     // FireStore 인스턴스 가져오기
+                        CollectionReference SubjectRef = db.collection("users")   // 해당 파일의 문서 접근
+                                .document(user.getUid())
+                                .collection("SubjectCategory");
+
+                        Query query = SubjectRef.whereEqualTo("subject", subject);
+
+                        query.get().addOnCompleteListener(task -> {
+                            if (task.getResult().isEmpty()) {   // 쿼리 결과가 없다 = 중복되는 내용이 없다.
+                                // 중복되는 내용이 아닌 경우
+                                CategoryStore(subject);         // 입력한 과목을 FireStore에 저장
+                                CategoryLoad();
+                            } else {
+                                // 중복되는 내용인 경우
+                                startToast("중복되는 과목입니다." + "\n 다른 이름을 입력해주세요.");
+                            }
+                        });
                    }
                 })
                 .setNegativeButton("취소",null);
@@ -410,10 +434,6 @@ public class SubjectCategory extends AppCompatActivity {
                     }
                 });
     }
-    private void myStartActivity(Class c) {    // 원하는 화면으로 이동하는 함수 (화면 이동 함수)
-        Intent intent = new Intent(this, c);
-        startActivity(intent);
-    }
 
     // 메뉴 선택하기 버튼 : 나머지 다른 옵션(과목 추가,삭제) 버튼들이 나오도록 함.
     private void MenuClick() {
@@ -481,13 +501,96 @@ public class SubjectCategory extends AppCompatActivity {
                                 // 상위 문서 삭제 실패
                                 Log.d(TAG, "FireStore 과목 삭제 실패 : " + e.getMessage());
                             });
+
+                    // 복습하기 리스트에도 존재할 경우, 함께 삭제
+                    Check_Delete_ReviewList(SubjectToDelete, documentId);
                 }
             } else {
                 // 과목 카테고리 검색 실패 시 처리 ( Query )
                 System.out.println("쿼리 실패: " + task.getException().getMessage());
             }
         });
+
     }
+
+    // 삭제할 과목이 복습하기 리스트에도 존재하는지 확인하고 삭제하는 메서드
+    private void Check_Delete_ReviewList(String SubjectToDelete, String subjectDocId) {
+
+        CollectionReference userRef = db.collection("users");
+        DocumentReference userDocRef = userRef.document(user.getUid());
+
+        // Review_SubjectCategory 컬렉션 접근
+        CollectionReference Review_subjectCategoryRef = userDocRef
+                .collection("Review_SubjectCategory");
+
+        Query query = Review_subjectCategoryRef.whereEqualTo("subject", SubjectToDelete);     // 받아온 값과 일치하는 문서 찾기
+
+        query.get().addOnCompleteListener(task -> {
+                    if (task.getResult().isEmpty()) {   // 쿼리 결과가 없다 == 복습하기 리스트에 없다.
+                        // 복습하기 리스트에 없는 경우 : Pass
+                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : 복습하기 리스트에 존재하지않음 : " + SubjectToDelete + " : 삭제 Pass");
+                    } else {
+                        // 복습하기 리스트에 있는 경우 : 함께 삭제
+                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : 복습하기 리스트에 존재 : " + SubjectToDelete + " : 삭제 완료");
+
+                        // 복습하기 리스트 삭제 로직
+                        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                        String subjectDocId = document.getId();    // 아이디 구하기
+                                        Log.d(TAG, " Check_Delete_ReviewList 메서드 subjectDocId : " + subjectDocId + " : " + SubjectToDelete);
+
+                                        // 과목 카테고리 삭제 (문서 삭제)
+                                        Review_subjectCategoryRef.document(subjectDocId)
+                                                .delete()
+                                                .addOnSuccessListener(aVoid -> {
+                                                    // 상위 문서 (과목 카테고리) 삭제 성공 시 처리
+                                                    //startToast("FireStore (복습 필요) 과목 삭제 성공");
+                                                    Log.d(TAG, "FireStore 복습리스트 과목 삭제 성공 : " + SubjectToDelete);
+
+                                                    //Log.d(TAG, "Delete_FireStore : CategoryLoad() 메서드 실행");
+
+                                                }).addOnFailureListener(e -> {
+                                                    // 상위 문서 삭제 실패
+                                                    Log.d(TAG, "FireStore 복습리스트 과목 삭제 실패 : " + SubjectToDelete + " : " + e.getMessage());
+                                                });
+
+                                        // Review_FileInfo 컬렉션 접근
+                                        CollectionReference Review_FileInfoRef = Review_subjectCategoryRef
+                                                .document(subjectDocId)
+                                                .collection("Review_FileInfo");
+
+                                        // 하위 컬렉션의 모든 문서를 쿼리하고 삭제
+                                        Review_FileInfoRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
+                                            for (QueryDocumentSnapshot subDocument : queryDocumentSnapshots) {
+                                                subDocument.getReference().delete()
+                                                        .addOnSuccessListener(aVoid1 -> {
+                                                            // 하위 컬렉션 문서 삭제 성공
+                                                            Log.d(TAG, "FireStore 복습리스트 파일 삭제 성공 : " + SubjectToDelete);
+                                                            //startToast("Review_FileInfo 문서 삭제 성공");
+                                                        })
+                                                        .addOnFailureListener(e -> {
+                                                            // 하위 컬렉션 문서 삭제 실패
+                                                            Log.d(TAG, "FireStore 복습리스트 파일 삭제 실패 : " + SubjectToDelete + " : " + e.getMessage());
+                                                            //startToast("Review_FileInfo 문서 삭제 실패");
+                                                        });
+                                            }
+                                        }).addOnFailureListener(e -> {
+                                            // 하위 컬렉션 쿼리 실패
+                                            Log.d(TAG, SubjectToDelete + " : Review_FileInfo 문서 쿼리 실패 " + e.getMessage());
+                                        });
+                                    }
+                                } else {    // 쿼리 실패한 경우
+                                    Log.d(TAG, "Check_Delete_ReviewList 메서드 쿼리 실패 : Error getting documents: ", task.getException());
+                                }
+                            }
+                        });
+                    }
+                });
+    }
+
     // Storage에서 해당 디렉토리와 파일 삭제
     private void deleteCategory(String SubjectToDelete) {
         // * Storage 참조 변수 생성

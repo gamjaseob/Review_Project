@@ -41,6 +41,9 @@
         <activity android:name=".FileList" />
         <activity android:name=".FileList_Manggag_view" />
         <activity android:name=".PDFViewerActivity" />
+        <activity android:name=".Review_SubjectCategory" />
+        <activity android:name=".Review_FileList" />
+        <activity android:name=".Study_Result" />
 
         <service
             android:name=".MyFirebaseMessagingService"
