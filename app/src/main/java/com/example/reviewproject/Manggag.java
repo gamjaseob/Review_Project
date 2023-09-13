@@ -70,7 +70,7 @@ public class Manggag extends AppCompatActivity {
         //StudyTimeLoad(fileName, subjectDocId);
 
         // + if ( 망각진행률 == 60% ) 이면 AddReviewList ( 리뷰리스트에 추가 ) 메서드 실행
-        AddReviewList(Subject);
+        AddReviewList(Subject);     // test 전용, 조건추가해야함.
 
         Drawgraph();
     }
