@@ -71,14 +71,14 @@ public class FileList extends AppCompatActivity {
     private String fileName;         // 파일 이름
     private String Subject;          // 해당 과목
     private MutableLiveData<Uri> selectedFileUri;       // File Uri
-    private boolean Review;     // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
-
+    private boolean Review;     // 집중모드인지 구별하기 위한 변수
+    private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_list);
 
-        Review = false;         // 복습하기 리스트 아님
+        IsStudyList = true;        // 학습하기 리스트
 
         // Intent에서 데이터 받아오기
         Subject = getIntent().getStringExtra("selectedSubject");
@@ -286,6 +286,7 @@ public class FileList extends AppCompatActivity {
                         intent.putExtra("fileName", fileName);
                         intent.putExtra("Subject", Subject);    // 과목이름 전달
                         intent.putExtra("Review", Review);      // 집중모드 여부 전달
+                        intent.putExtra("IsStudyList", IsStudyList );   // 학습하기 or 복습하기 리스트 여부 전달
 
                         Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
                         startActivity(intent);

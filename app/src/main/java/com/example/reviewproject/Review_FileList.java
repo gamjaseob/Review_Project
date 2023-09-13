@@ -71,10 +71,14 @@ public class Review_FileList extends AppCompatActivity {
     private String fileName;         // 파일 이름
     private String Subject;          // 해당 과목
 
+    private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_list);
+
+        IsStudyList = false;       // 복습하기 리스트
 
         // 복습하기 리스트에서는 '집중모드' 자동실행 ( * 집중모드가 실행되는 곳은 PDF 뷰어 )
 
@@ -306,6 +310,7 @@ public class Review_FileList extends AppCompatActivity {
                 intent.putExtra("DirectoryPath", DirectoryPath);
                 intent.putExtra("fileName", fileName);
                 intent.putExtra("Subject", Subject);    // 과목이름 전달
+                intent.putExtra("IsStudyList", IsStudyList);   // 학습하기 & 복습하기 리스트 여부 전달 : 복습하기 리스트 ( false )
 
                 // 복습하기 리스트에서는 '집중모드' 자동실행 ( * 집중모드가 실행되는 곳은 PDF 뷰어 )
                 intent.putExtra("Review", true);    // 집중모드 여부 전달
