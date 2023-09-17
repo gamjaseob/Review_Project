@@ -75,7 +75,7 @@ public class Manggag extends AppCompatActivity {
         // + if ( 망각진행률 == 60% ) 이면 AddReviewList ( 리뷰리스트에 추가 ) 메서드 실행
         AddReviewList(Subject);
 
-        Drawgraph();
+        //Drawgraph();
     }
 
     //망각곡선 그리는 함수
@@ -178,7 +178,7 @@ public class Manggag extends AppCompatActivity {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 subjectDocId = document.getId();
 
-                                //StudyTimeLoad(fileName, subjectDocId);
+                                StudyTimeLoad(fileName, subjectDocId);
 
                                 // 이 부분에 망각 곡선 작성 :onCreate() 함수부터 Test 바람
 
