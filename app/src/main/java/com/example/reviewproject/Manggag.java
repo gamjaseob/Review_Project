@@ -82,22 +82,25 @@ public class Manggag extends AppCompatActivity {
     private void Drawgraph(Calendar cal) {
         Calendar c = Calendar.getInstance();
 
+        //현재시간 더블형 변환
         double minute1 = c.get(Calendar.MINUTE) + 1;
         double hour1 = c.get(Calendar.HOUR);
         double day1 = c.get(Calendar.DAY_OF_MONTH);
         double month1 = c.get(Calendar.MONTH) + 1;
 
+        //공부종료시간 더블형 변환
         double minute2 = cal.get(Calendar.MINUTE);
         double hour2 = cal.get(Calendar.HOUR);
         double day2 = cal.get(Calendar.DAY_OF_MONTH);
         double month2 = cal.get(Calendar.MONTH) + 1;
 
-
+        //현재시간 - 공부 종료 시간
         double minute = minute1 - minute2;
         double hour = hour1 - hour2;
         double day = day1 - day2;
         double month = month1 - month2;
 
+        //시간 더하기
         double nowtime = minute + (hour * 60) + (day * 1440) + (month * 44640);
 
         //double  = 184 / (Math.pow(Math.log(120.0), 1.25) + 1.84);
@@ -157,7 +160,7 @@ public class Manggag extends AppCompatActivity {
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
 
-            cal.add(Calendar.HOUR, -3);
+            //cal.add(Calendar.HOUR, -3);
 
             Drawgraph(cal);
         });
@@ -177,6 +180,9 @@ public class Manggag extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 subjectDocId = document.getId();
+
+
+                                //종료시간 불러오는 함수
 
                                 StudyTimeLoad(fileName, subjectDocId);
 
