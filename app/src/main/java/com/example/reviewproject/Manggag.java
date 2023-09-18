@@ -181,7 +181,9 @@ public class Manggag extends AppCompatActivity {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 subjectDocId = document.getId();
 
+
                                 //종료시간 불러오는 함수
+
                                 StudyTimeLoad(fileName, subjectDocId);
 
                                 // 이 부분에 망각 곡선 작성 :onCreate() 함수부터 Test 바람
