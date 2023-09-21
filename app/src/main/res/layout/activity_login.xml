@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     style="bold"
     android:layout_width="match_parent"
+    android:background="#EAEAEA"
     android:layout_height="match_parent">
 
     <LinearLayout
@@ -11,22 +12,26 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.5"/>
+
+        <ImageView
             android:id="@+id/textView"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:background="#BDDA9B"
-            android:gravity="center"
-            android:text="로그인"
-            android:textColor="#000000"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:src="@drawable/main_logo"
+            android:text="로그인" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#BDDA9B"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+
             android:orientation="vertical"
+            android:gravity="top"
             android:padding="30dp">
 
             <EditText
@@ -37,6 +42,7 @@
                 android:ems="10"
                 android:hint="이메일"
                 android:inputType="textEmailAddress" />
+
 
             <EditText
                 android:id="@+id/passwordEditText"
@@ -51,7 +57,7 @@
                 android:id="@+id/checkbutton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#4CAF50"
+                android:backgroundTint="#FFFFFF"
                 android:text="로그인"
                 android:textColor="#000000"/>
 
@@ -59,7 +65,7 @@
                 android:id="@+id/signupbutton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#4CAF50"
+                android:backgroundTint="#FFFFFF"
                 android:text="회원가입"
                 android:textColor="#000000"/>
 
@@ -67,7 +73,7 @@
                 android:id="@+id/gotoPasswordResetButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#4CAF50"
+                android:backgroundTint="#FFFFFF"
                 android:text="비밀번호를 잊으셨나요?"
                 android:textColor="#000000"/>
 

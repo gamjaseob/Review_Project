@@ -7,12 +7,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,12 +20,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -95,11 +92,11 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        Button logoutButton = findViewById(R.id.logoutButton);  // 로그아웃 버튼
-        Button SubjectCategory_Button = findViewById(R.id.SubjectCategory);  // 학습하기(과목 리스트) 버튼
-        Button ReviewList_Button = findViewById(R.id.ReviewList);      // 복습하기 버튼 리
-        Button manggag_Button = findViewById(R.id.manggagbtn);        //망각곡선 버튼
-        Button Study_button = findViewById(R.id.studybtn);       // 집중모드 리스너 생성
+        ImageView logoutButton = findViewById(R.id.logoutButton);  // 로그아웃 버튼
+        LinearLayout SubjectCategory_Button = findViewById(R.id.SubjectCategory);  // 학습하기(과목 리스트) 버튼
+        LinearLayout ReviewList_Button = findViewById(R.id.ReviewList);      // 복습하기 버튼 리
+        LinearLayout manggag_Button = findViewById(R.id.manggagbtn);        //망각곡선 버튼
+        TextView Study_button = findViewById(R.id.studybtn);       // 집중모드 리스너 생성
 
         // '집중모드' 버튼 텍스트 변경
         if(Review) {    // 집중모드가 이미 실행 중이면
@@ -137,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         // 집중모드
         Study_button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) { Study_Dialog(Study_button); }
+            public void onClick(View view) { Study_Dialog((Button) Study_button); }
         });
 
         // 망각곡선
