@@ -80,8 +80,6 @@
                 android:backgroundTint="#FFFFFF"
                 android:text="회원가입"
                 android:textColor="#000000"/>
-
-
         </LinearLayout>
 
     </LinearLayout>
