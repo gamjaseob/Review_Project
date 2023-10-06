@@ -74,8 +74,6 @@ public class Manggag extends AppCompatActivity {
 
         // + if ( 망각진행률 == 60% ) 이면 AddReviewList ( 리뷰리스트에 추가 ) 메서드 실행
         AddReviewList(Subject);
-
-        //Drawgraph();
     }
 
     //망각곡선 그리는 함수
@@ -160,7 +158,7 @@ public class Manggag extends AppCompatActivity {
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
 
-            //cal.add(Calendar.HOUR, -3);
+            cal.add(Calendar.HOUR, -3);
 
             Drawgraph(cal);
         });
