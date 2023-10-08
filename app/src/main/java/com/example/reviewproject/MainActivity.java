@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         // 집중모드
         Study_button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) { Study_Dialog((Button) Study_button); }
+            public void onClick(View view) { Study_Dialog(Study_button); }
         });
 
         // 망각곡선
@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
         famsaylist.add("공부가 뭐 대수냐 후회가 무서운거지");
     }
     // '집중모드를 시작&종료 하시겠습니까?' 문구를 띄우는 Dialog
-    private void Study_Dialog(Button Study_button) {
+    private void Study_Dialog(TextView Study_button) {
 
         String dynamicText1;    // 텍스트 설정
         //String dynamicText2;
