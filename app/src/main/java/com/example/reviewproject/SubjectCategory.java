@@ -84,7 +84,6 @@ public class SubjectCategory extends AppCompatActivity {
         MenuButton = findViewById(R.id.Subject_MenuButton);             // 메뉴 선택 버튼
         Menu_XButton = findViewById(R.id.Subject_Menu_XButton);         // 메뉴 선택 취소 버튼
 
-        MenuCancleClick();    // 메뉴 선택하기 버튼 생성 ( 메뉴 초기화 )
 
         // 메뉴 선택하기 버튼 이벤트 처리 : 버튼 클릭했을 때 과목 추가&삭제 버튼 나옴
         MenuButton.setOnClickListener(new View.OnClickListener() {
@@ -112,6 +111,17 @@ public class SubjectCategory extends AppCompatActivity {
         Log.d(TAG, "Review: 받아온 집중모드 여부 : " + Review);
         GoToManggag = getIntent().getBooleanExtra("GoToManggag", GoToManggag);    // 망각곡선 바로가기 여부
         Log.d(TAG, "GoToManggag: 받아온 망각곡선 바로가기 여부 : " + GoToManggag);
+
+        if(GoToManggag) {       // 망각곡선 바로가기일 경우, 모든 메뉴 버튼 숨기기
+            MenuButton.setVisibility(View.GONE);
+            Menu_XButton.setVisibility(View.GONE);
+            SubjectAddButton.setVisibility(View.GONE);
+            SubjectDeleteButton.setVisibility(View.GONE);
+            SubjectDeleteButton_Back.setVisibility(View.GONE);
+            SubjectDeleteButton_Ok.setVisibility(View.GONE);
+        } else {
+            MenuCancleClick();    // 메뉴 선택하기 버튼 생성 ( 메뉴 초기화 )
+        }
 
         // 카테고리 목록 불러오기
         CategoryLoad();
@@ -195,21 +205,33 @@ public class SubjectCategory extends AppCompatActivity {
                             }
                         });
 
-                    } else {        // 다른 동작 처리 (아이템 클릭 시의 다른 동작)
+                    }
+                    else {        // 다른 동작 처리 (아이템 클릭 시의 다른 동작)
 
                         // 클릭한 아이템의 정보를 가져옴 : 아이템 이름
                         String selectedSubject = SubjectRef.getName();
-                        // 선택한 항목의 정보를 Intent에 담아 File.Class를 시작
-                        Intent intent = new Intent(SubjectCategory.this, FileList.class);
-                        intent.putExtra("selectedSubject", selectedSubject);    // 과목이름 전달
-                        intent.putExtra("Review", Review);      // 집중모드 여부 전달
-                        intent.putExtra("GoToManggag", GoToManggag);     // 망각곡선 바로가기 여부 전달
 
-                        Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
-                        Log.d(TAG, "전달한 집중모드 여부 : " + Review);
-                        Log.d(TAG, "전달한 망각곡선 바로가기 여부 : " + GoToManggag);
+                        if(GoToManggag) {   // 사용자가 '망각곡선 바로가기'를 통해 들어왔다면 : 바로 망각곡선 선택 리스트로 이동
 
-                        startActivity(intent);
+                            Intent intent = new Intent(SubjectCategory.this, FileList_Manggag_view.class);
+                            intent.putExtra("Subject", selectedSubject);    // 과목이름 전달
+
+                            Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
+
+                            startActivity(intent);
+
+                        } else {    // 사용자가 '망각곡선 바로가기'를 통해 들어온 것이 아닐 때 : 일반 파일리스트로 이동
+
+                            // 선택한 항목의 정보를 Intent에 담아 File.Class를 시작
+                            Intent intent = new Intent(SubjectCategory.this, FileList.class);
+                            intent.putExtra("selectedSubject", selectedSubject);    // 과목이름 전달
+                            intent.putExtra("Review", Review);      // 집중모드 여부 전달
+
+                            Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
+                            Log.d(TAG, "전달한 집중모드 여부 : " + Review);
+
+                            startActivity(intent);
+                        }
                     }
                 }
             });

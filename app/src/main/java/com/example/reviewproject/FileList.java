@@ -72,7 +72,6 @@ public class FileList extends AppCompatActivity {
     private String Subject;          // 해당 과목
     private MutableLiveData<Uri> selectedFileUri;       // File Uri
     private boolean Review;     // 집중모드인지 구별하기 위한 변수
-    private boolean GoToManggag;    // 망각곡선 바로가기를 위한 변수
     private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +83,6 @@ public class FileList extends AppCompatActivity {
         // Intent에서 데이터 받아오기
         Subject = getIntent().getStringExtra("selectedSubject");
         Review = getIntent().getBooleanExtra("Review", Review);         // 집중모드 리스트 여부
-        GoToManggag = getIntent().getBooleanExtra("GoToManggag", GoToManggag);    // 망각곡선 바로가기 여부
 
         // 받아온 값을 통해 Subject Category Document ID 추출
         ReturnSubjectDocRef(Subject);
@@ -95,7 +93,6 @@ public class FileList extends AppCompatActivity {
         //값 전달 test
         Log.d(TAG, "받아온 과목 이름 : " + Subject);
         Log.d(TAG, "Review: 받아온 집중모드 여부 : " + Review);
-        Log.d(TAG, "GoToManggag: 받아온 망각곡선 바로가기 여부 : " + GoToManggag);
         Log.d(TAG, "추출한 Subject Collection DocumentID : " + subjectDocId);  // 여기가 왜 null인지 모르겠다.
 
         selectedFileUri = new MutableLiveData<>();     // 사용자가 선택한 파일의 URI 변수
@@ -276,16 +273,6 @@ public class FileList extends AppCompatActivity {
                     }
                     // 다른 동작 처리 (아이템 클릭 시의 다른 동작)
                     else {
-                        if(GoToManggag) {   // 사용자가 '망각곡선 바로가기'를 통해 들어왔다면
-
-                            Intent intent = new Intent(FileList.this, FileList_Manggag_view.class);
-                            intent.putExtra("Subject", Subject);    // 과목이름 전달
-
-                            Log.d(TAG, "전달한 과목 이름 : " + Subject);
-
-                            startActivity(intent);
-                        }
-                        else {      // '망각곡선 바로가기'를 통해 들어온게 아닌 경우 : PDF 뷰어 실행
 
                             fileName = fileRef.getName();  // 전역변수 : fileName 구하기
                             TimeStore(fileName);           // 공부 시작 시간 저장
@@ -304,7 +291,6 @@ public class FileList extends AppCompatActivity {
 
                             Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
                             startActivity(intent);
-                        }
                     }
                 }
             });
