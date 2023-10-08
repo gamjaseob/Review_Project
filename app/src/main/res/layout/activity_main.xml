@@ -1,79 +1,276 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    style="bold"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#EAEAEA"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#EAEAEA"
+        android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/MainView"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:gravity="center"
-            android:text="메인 페이지"
-            android:textColor="#000000"
-            android:textSize="24sp"
-            android:textStyle="bold" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="30dp">
-
-            <Button
-                android:id="@+id/SubjectCategory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="학습하기" />
-
-            <Button
-                android:id="@+id/ReviewList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="복습하기" />
-
-            <Button
-                android:id="@+id/logoutButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="로그아웃" />
-
-            <Button
-                android:id="@+id/studybtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
-            <Button
-                android:id="@+id/manggagbtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="망각곡선" />
-
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
+        <ImageView
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_weight="1"/>
 
-            <TextView
-                android:id="@+id/FamSay"
-                android:layout_width="match_parent"
-                android:layout_height="156dp"
-                android:layout_weight="1"
-                android:freezesText="false"
-                android:text="FamousSaying"
-                android:textAlignment="center"
-                android:textSize="20sp" />
+        <ImageView
+            android:id="@+id/MainView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="6"
+            android:src="@drawable/main_logo" />
 
-        </LinearLayout>
+        <ImageView
+            android:id="@+id/logoutButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/logout" />
 
     </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="12"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="8dp"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:id="@+id/manggagbtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:background="#ffffff"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:text="망각곡선"
+                    android:textSize="20sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginRight="8dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Forgetting curve"
+                    android:textSize="15sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"/>
+
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="right"
+                    android:src="@drawable/button1" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/SubjectCategory"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="7dp"
+                android:layout_weight="1"
+                android:background="#F8EAEA"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginRight="8dp"
+                    android:text="학습하기"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:text="Study"
+                    android:textSize="15sp" />
+
+
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="right"
+                    android:src="@drawable/button1" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="8dp"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:id="@+id/ReviewList"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#F8EAEA"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:text="복습하기"
+                    android:textSize="20sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginRight="8dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Revision"
+                    android:textSize="15sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"/>
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/button1"
+                    android:layout_gravity="right"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:background="#ffffff"
+                android:layout_weight="1"
+                android:layout_marginLeft="7dp"
+                android:orientation="vertical">
+
+
+                <TextView
+                    android:id="@+id/studybtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginRight="8dp"
+                    android:text="집중모드 시작"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Focus mode"
+                    android:textSize="15sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"/>
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/button1"
+                    android:layout_gravity="right"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#ffffff"
+                android:orientation="vertical"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="8dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:text="명언"
+                    android:textSize="20sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginRight="8dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Wise saying"
+                    android:textSize="15sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"/>
+                <TextView
+                    android:id="@+id/FamSay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="#FFFFFF"
+                    android:freezesText="false"
+                    android:text="FamousSaying"
+                    android:textStyle="bold"
+                    android:textAlignment="center"
+                    android:gravity="center"
+                    android:textSize="20sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#F8EAEA"
+                android:orientation="vertical"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="8dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:text="추가예정"
+                    android:textSize="20sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginRight="8dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Update"
+                    android:textSize="15sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"/>
+                <ImageView
+                    android:layout_width="250dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/button1"
+                    android:layout_gravity="center"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
