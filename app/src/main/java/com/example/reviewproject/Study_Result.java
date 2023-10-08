@@ -98,6 +98,10 @@ public class Study_Result extends AppCompatActivity {
                 // Intent를 생성하고 파일 경로 값을 설정하여 Study_Result로 전달
                 Intent intent = new Intent(Study_Result.this, MainActivity.class);
                 intent.putExtra("Review", false);      // 복습하기 리스트 해제 ( 집중모드 해제 )
+
+                // 액티비티 스택을 지우고 새로운 작업으로 시작하기 위한 플래그 설정
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
                 startActivity(intent);
             }
         });
