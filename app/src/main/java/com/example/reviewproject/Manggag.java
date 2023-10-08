@@ -70,10 +70,11 @@ public class Manggag extends AppCompatActivity {
         Log.d(TAG, "받아온 파일 이름 : " + fileName);
 
         // 공부 종료 시간 ( StudyEnd )을 FireStore로부터 얻어오는 메서드 : 주석 풀어보고 Test 해보기
-        //StudyTimeLoad(fileName, subjectDocId);
+        StudyTimeLoad(fileName, subjectDocId);
 
         // + if ( 망각진행률 == 60% ) 이면 AddReviewList ( 리뷰리스트에 추가 ) 메서드 실행
-        AddReviewList(Subject);
+        AddReviewList(Subject);     // test 전용, 조건추가해야함.
+
     }
 
     //망각곡선 그리는 함수
@@ -160,6 +161,7 @@ public class Manggag extends AppCompatActivity {
 
             cal.add(Calendar.HOUR, -3);
 
+            // 본격적으로 그래프 그리기
             Drawgraph(cal);
         });
     }

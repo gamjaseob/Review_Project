@@ -49,7 +49,8 @@ public class PDFViewerActivity extends AppCompatActivity {
     private PDFView pdfView;    // PDF Viewer 컨테이너 객체
     private String DirectoryPath;     // 파일이 존재하는 디렉토리 경로
     private File viewFile;  // 뷰어에 띄울 임시파일 변수
-    private boolean Review;     // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
+    private boolean Review;     // 집중모드인지 구별하기 위한 변수
+    private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
 
     @Override
     public void onBackPressed() {       // 뒤로가기 눌렀을 때
@@ -72,7 +73,8 @@ public class PDFViewerActivity extends AppCompatActivity {
         DirectoryPath = getIntent().getStringExtra("DirectoryPath");
         fileName = getIntent().getStringExtra("fileName");
         Subject = getIntent().getStringExtra("Subject");
-        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 여부
+        Review = getIntent().getBooleanExtra("Review", Review);         // 집중모드 여부
+        IsStudyList = getIntent().getBooleanExtra("IsStudyList", IsStudyList);    // 학습하기 & 복습하기 리스트 여부
 
         // 받아온 값(Subject)을 통해 Subject Category Document ID 추출
         ReturnSubjectDocRef(Subject);
@@ -83,6 +85,8 @@ public class PDFViewerActivity extends AppCompatActivity {
         Log.d(TAG, "Subject: 받아온 과목 이름 : " + Subject);
         Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
         Log.d(TAG, "추출한 Subject Collection DocumentID : " + subjectDocId);  // 여기가 왜 null인지 모르겠다.
+        Log.d(TAG, "StudyList: 받아온 학습하기 & 복습하기 리스트 여부 : " + IsStudyList);
+        // true : 학습하기, false : 복습하기
 
         if(Review){     // 집중모드일 경우
 
@@ -207,7 +211,8 @@ public class PDFViewerActivity extends AppCompatActivity {
                     intent.putExtra("DirectoryPath", DirectoryPath);
                     intent.putExtra("fileName", fileName);
                     intent.putExtra("Subject", Subject);    // 과목이름 전달
-                    intent.putExtra("Review", Review);      // 복습하기 리스트 여부 전달
+                    intent.putExtra("Review", Review);      // 집중모드 여부 전달
+                    intent.putExtra("IsStudyList", IsStudyList); // 학습하기 & 복습하기 리스트 여부 전달
                     startActivity(intent);
 
                 }else {     // '학습하기' 리스트(집중모드 X)에서 실행한 PDF 뷰어라면

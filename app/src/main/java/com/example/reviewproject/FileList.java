@@ -71,18 +71,20 @@ public class FileList extends AppCompatActivity {
     private String fileName;         // 파일 이름
     private String Subject;          // 해당 과목
     private MutableLiveData<Uri> selectedFileUri;       // File Uri
-    private boolean Review;     // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
-
+    private boolean Review;     // 집중모드인지 구별하기 위한 변수
+    private boolean GoToManggag;    // 망각곡선 바로가기를 위한 변수
+    private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_list);
 
-        Review = false;         // 복습하기 리스트 아님
+        IsStudyList = true;        // 학습하기 리스트
 
         // Intent에서 데이터 받아오기
         Subject = getIntent().getStringExtra("selectedSubject");
-        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 여부
+        Review = getIntent().getBooleanExtra("Review", Review);         // 집중모드 리스트 여부
+        GoToManggag = getIntent().getBooleanExtra("GoToManggag", GoToManggag);    // 망각곡선 바로가기 여부
 
         // 받아온 값을 통해 Subject Category Document ID 추출
         ReturnSubjectDocRef(Subject);
@@ -92,7 +94,8 @@ public class FileList extends AppCompatActivity {
 
         //값 전달 test
         Log.d(TAG, "받아온 과목 이름 : " + Subject);
-        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
+        Log.d(TAG, "Review: 받아온 집중모드 여부 : " + Review);
+        Log.d(TAG, "GoToManggag: 받아온 망각곡선 바로가기 여부 : " + GoToManggag);
         Log.d(TAG, "추출한 Subject Collection DocumentID : " + subjectDocId);  // 여기가 왜 null인지 모르겠다.
 
         selectedFileUri = new MutableLiveData<>();     // 사용자가 선택한 파일의 URI 변수
@@ -157,7 +160,6 @@ public class FileList extends AppCompatActivity {
                 //Log.d(TAG, "전달한 파일 이름 : " + fileName);
 
                 startActivity(intent);
-
             }
         });
 
@@ -271,24 +273,38 @@ public class FileList extends AppCompatActivity {
                                 Log.d(TAG, selectedIndexes + " : 인덱스 선택");
                             }
                         });
-                    } else {
-                        fileName = fileRef.getName();  // 전역변수 : fileName 구하기
-                        TimeStore(fileName);           // 공부 시작 시간 저장
+                    }
+                    // 다른 동작 처리 (아이템 클릭 시의 다른 동작)
+                    else {
+                        if(GoToManggag) {   // 사용자가 '망각곡선 바로가기'를 통해 들어왔다면
 
-                        // PDF 파일을 업로드하고 파일 경로 값을 전달하는 부분
-                        String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
+                            Intent intent = new Intent(FileList.this, FileList_Manggag_view.class);
+                            intent.putExtra("Subject", Subject);    // 과목이름 전달
 
-                        Log.d(TAG, "FileAdapter : 전달된 파일 경로 : " + DirectoryPath);
+                            Log.d(TAG, "전달한 과목 이름 : " + Subject);
 
-                        // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달 ( 뷰어 이동 )
-                        Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
-                        intent.putExtra("DirectoryPath", DirectoryPath);
-                        intent.putExtra("fileName", fileName);
-                        intent.putExtra("Subject", Subject);    // 과목이름 전달
-                        intent.putExtra("Review", Review);      // 집중모드 여부 전달
+                            startActivity(intent);
+                        }
+                        else {      // '망각곡선 바로가기'를 통해 들어온게 아닌 경우 : PDF 뷰어 실행
 
-                        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
-                        startActivity(intent);
+                            fileName = fileRef.getName();  // 전역변수 : fileName 구하기
+                            TimeStore(fileName);           // 공부 시작 시간 저장
+
+                            // PDF 파일을 업로드하고 파일 경로 값을 전달하는 부분
+                            String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
+                            Log.d(TAG, "FileAdapter : 전달된 파일 경로 : " + DirectoryPath);
+
+                            // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달 ( 뷰어 이동 )
+                            Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
+                            intent.putExtra("DirectoryPath", DirectoryPath);
+                            intent.putExtra("fileName", fileName);
+                            intent.putExtra("Subject", Subject);    // 과목이름 전달
+                            intent.putExtra("Review", Review);      // 집중모드 여부 전달
+                            intent.putExtra("IsStudyList", IsStudyList);   // 학습하기 or 복습하기 리스트 여부 전달
+
+                            Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
+                            startActivity(intent);
+                        }
                     }
                 }
             });
@@ -653,12 +669,60 @@ public class FileList extends AppCompatActivity {
                                 Log.d(TAG,FileToDelete + " : FireStore 파일 삭제 실패 : " + e.getMessage());
                             });
                 }
+
+                // 복습하기 리스트에도 존재할 경우, 함께 삭제
+                Check_Delete_ReviewList(FileToDelete, Subject);
+
             } else {
                 // 파일리스트 검색 실패 시 처리 ( Query )
                 System.out.println("파일리스트 쿼리 실패: " + task.getException().getMessage());
             }
         });
     }
+
+    // 삭제할 과목이 복습하기 리스트에도 존재하는지 확인하고 삭제하는 메서드
+    private void Check_Delete_ReviewList(String FileToDelete, String Subject) {
+
+        CollectionReference userRef = db.collection("users");
+        DocumentReference userDocRef = userRef.document(user.getUid());
+
+        // Review_SubjectCategory 컬렉션 접근
+        CollectionReference Review_subjectCategoryRef = userDocRef
+                .collection("Review_SubjectCategory");
+
+        // 복습하기 리스트의 '과목' 먼저 접근
+        Query Subject_query = Review_subjectCategoryRef.whereEqualTo("subject", Subject);
+
+        Subject_query.get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // 일치하는 문서를 찾았을 때 삭제 ( 과목 카테고리 )
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+
+                            // 해당 과목 문서 ID 추출
+                            String documentId = document.getId();
+
+                            // Review_FileInfo 컬렉션 접근 ( 하위 컬렉션 접근 )
+                            CollectionReference Review_FileInfoRef = Review_subjectCategoryRef
+                                    .document(documentId)
+                                    .collection("Review_FileInfo");
+
+                            // 해당 파일 삭제
+                            Review_FileInfoRef.document(FileToDelete)
+                                    .delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        //startToast("FireStore (복습 필요) 파일 삭제 성공");
+                                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : FireStore 복습리스트 파일 삭제 성공 : " + FileToDelete);
+
+                                    }).addOnFailureListener(e -> {
+                                        // 상위 문서 삭제 실패
+                                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : FireStore 복습리스트 과목 삭제 실패 : " + FileToDelete + " : " + e.getMessage());
+                                    });
+                        }
+                    }
+                });
+
+    }
+
     // Storage에서 해당 파일 삭제
     private void TodeleteFile(String FileToDelete) {
         // * Storage 참조 변수 생성
