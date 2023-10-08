@@ -72,6 +72,7 @@ public class FileList extends AppCompatActivity {
     private String Subject;          // 해당 과목
     private MutableLiveData<Uri> selectedFileUri;       // File Uri
     private boolean Review;     // 집중모드인지 구별하기 위한 변수
+    private boolean GoToManggag;    // 망각곡선 바로가기를 위한 변수
     private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,7 +83,8 @@ public class FileList extends AppCompatActivity {
 
         // Intent에서 데이터 받아오기
         Subject = getIntent().getStringExtra("selectedSubject");
-        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 여부
+        Review = getIntent().getBooleanExtra("Review", Review);         // 집중모드 리스트 여부
+        GoToManggag = getIntent().getBooleanExtra("GoToManggag", GoToManggag);    // 망각곡선 바로가기 여부
 
         // 받아온 값을 통해 Subject Category Document ID 추출
         ReturnSubjectDocRef(Subject);
@@ -92,7 +94,8 @@ public class FileList extends AppCompatActivity {
 
         //값 전달 test
         Log.d(TAG, "받아온 과목 이름 : " + Subject);
-        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
+        Log.d(TAG, "Review: 받아온 집중모드 여부 : " + Review);
+        Log.d(TAG, "GoToManggag: 받아온 망각곡선 바로가기 여부 : " + GoToManggag);
         Log.d(TAG, "추출한 Subject Collection DocumentID : " + subjectDocId);  // 여기가 왜 null인지 모르겠다.
 
         selectedFileUri = new MutableLiveData<>();     // 사용자가 선택한 파일의 URI 변수
@@ -157,7 +160,6 @@ public class FileList extends AppCompatActivity {
                 //Log.d(TAG, "전달한 파일 이름 : " + fileName);
 
                 startActivity(intent);
-
             }
         });
 
@@ -271,25 +273,38 @@ public class FileList extends AppCompatActivity {
                                 Log.d(TAG, selectedIndexes + " : 인덱스 선택");
                             }
                         });
-                    } else {
-                        fileName = fileRef.getName();  // 전역변수 : fileName 구하기
-                        TimeStore(fileName);           // 공부 시작 시간 저장
+                    }
+                    // 다른 동작 처리 (아이템 클릭 시의 다른 동작)
+                    else {
+                        if(GoToManggag) {   // 사용자가 '망각곡선 바로가기'를 통해 들어왔다면
 
-                        // PDF 파일을 업로드하고 파일 경로 값을 전달하는 부분
-                        String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
+                            Intent intent = new Intent(FileList.this, FileList_Manggag_view.class);
+                            intent.putExtra("Subject", Subject);    // 과목이름 전달
 
-                        Log.d(TAG, "FileAdapter : 전달된 파일 경로 : " + DirectoryPath);
+                            Log.d(TAG, "전달한 과목 이름 : " + Subject);
 
-                        // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달 ( 뷰어 이동 )
-                        Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
-                        intent.putExtra("DirectoryPath", DirectoryPath);
-                        intent.putExtra("fileName", fileName);
-                        intent.putExtra("Subject", Subject);    // 과목이름 전달
-                        intent.putExtra("Review", Review);      // 집중모드 여부 전달
-                        intent.putExtra("IsStudyList", IsStudyList );   // 학습하기 or 복습하기 리스트 여부 전달
+                            startActivity(intent);
+                        }
+                        else {      // '망각곡선 바로가기'를 통해 들어온게 아닌 경우 : PDF 뷰어 실행
 
-                        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
-                        startActivity(intent);
+                            fileName = fileRef.getName();  // 전역변수 : fileName 구하기
+                            TimeStore(fileName);           // 공부 시작 시간 저장
+
+                            // PDF 파일을 업로드하고 파일 경로 값을 전달하는 부분
+                            String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
+                            Log.d(TAG, "FileAdapter : 전달된 파일 경로 : " + DirectoryPath);
+
+                            // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달 ( 뷰어 이동 )
+                            Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
+                            intent.putExtra("DirectoryPath", DirectoryPath);
+                            intent.putExtra("fileName", fileName);
+                            intent.putExtra("Subject", Subject);    // 과목이름 전달
+                            intent.putExtra("Review", Review);      // 집중모드 여부 전달
+                            intent.putExtra("IsStudyList", IsStudyList);   // 학습하기 or 복습하기 리스트 여부 전달
+
+                            Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
+                            startActivity(intent);
+                        }
                     }
                 }
             });

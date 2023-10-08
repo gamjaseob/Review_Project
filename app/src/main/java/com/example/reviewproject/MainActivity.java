@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     TextView famsay; // 선언
 
     private boolean Review;     // 복습하기 (집중모드) 여부 확인 변수
+    private boolean GoToManggag;    // 망각곡선 바로가기를 위한 변수
 
     int i = 0;
 
@@ -143,7 +144,13 @@ public class MainActivity extends AppCompatActivity {
         // 망각곡선
         manggag_Button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) { myStartActivity(Manggag.class); }
+            public void onClick(View view) {
+                GoToManggag = true;
+                // 망각곡선 바로가기 : 과목 카데고리로 이동
+                Intent intent = new Intent(MainActivity.this, SubjectCategory.class);
+                intent.putExtra("GoToManggag", GoToManggag);      // 바로가기 여부 전달
+                startActivity(intent);
+            }
         });
     }
 

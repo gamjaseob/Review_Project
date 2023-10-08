@@ -68,7 +68,8 @@ public class SubjectCategory extends AppCompatActivity {
     private FloatingActionButton SubjectDeleteButton_Ok;     // 과목 삭제 완료 버튼
     private FloatingActionButton MenuButton;        // 메뉴 선택 버튼
     private FloatingActionButton Menu_XButton;      // 메뉴 선택 취소 버튼
-    private boolean Review; // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
+    private boolean Review; // 집중모드인지 구별하기 위한 변수
+    private boolean GoToManggag;    // 망각곡선 바로가기를 위한 변수
 
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -107,8 +108,10 @@ public class SubjectCategory extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.SubjectList);
 
         // intent에서 데이터 받아오기
-        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 (집중모드) 여부
-        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
+        Review = getIntent().getBooleanExtra("Review", Review);         // 집중모드 여부
+        Log.d(TAG, "Review: 받아온 집중모드 여부 : " + Review);
+        GoToManggag = getIntent().getBooleanExtra("GoToManggag", GoToManggag);    // 망각곡선 바로가기 여부
+        Log.d(TAG, "GoToManggag: 받아온 망각곡선 바로가기 여부 : " + GoToManggag);
 
         // 카테고리 목록 불러오기
         CategoryLoad();
@@ -200,8 +203,11 @@ public class SubjectCategory extends AppCompatActivity {
                         Intent intent = new Intent(SubjectCategory.this, FileList.class);
                         intent.putExtra("selectedSubject", selectedSubject);    // 과목이름 전달
                         intent.putExtra("Review", Review);      // 집중모드 여부 전달
+                        intent.putExtra("GoToManggag", GoToManggag);     // 망각곡선 바로가기 여부 전달
+
                         Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
-                        Log.d(TAG, "전달한 복습하기 리스트 (집중모드) 여부 : " + Review);
+                        Log.d(TAG, "전달한 집중모드 여부 : " + Review);
+                        Log.d(TAG, "전달한 망각곡선 바로가기 여부 : " + GoToManggag);
 
                         startActivity(intent);
                     }
