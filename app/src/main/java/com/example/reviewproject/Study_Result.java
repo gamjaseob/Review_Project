@@ -64,6 +64,7 @@ public class Study_Result extends AppCompatActivity {
     private String Subject;          // 해당 과목
     private String DirectoryPath;   // 파일 경로
     private Button Study_ResultOK_Button;  // 학습 태도 분석 결과 '확인'버튼
+    private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +75,7 @@ public class Study_Result extends AppCompatActivity {
         DirectoryPath = getIntent().getStringExtra("DirectoryPath");
         fileName = getIntent().getStringExtra("fileName");
         Subject = getIntent().getStringExtra("Subject");
+        IsStudyList = getIntent().getBooleanExtra("IsStudyList", IsStudyList);
 
         //ReturnSubjectDocRef(Subject);
 
@@ -82,6 +84,7 @@ public class Study_Result extends AppCompatActivity {
         Log.d(TAG, "fileName: 받아온 파일 이름 : " + fileName);
         Log.d(TAG, "Subject: 받아온 과목 이름 : " + Subject);
         Log.d(TAG, "추출한 Subject Collection DocumentID : " + subjectDocId);  // 여기가 왜 null인지 모르겠다.
+        Log.d(TAG, "StudyList: 받아온 학습하기 & 복습하기 여부 : " + IsStudyList);
 
         Study_ResultOK_Button = findViewById(R.id.StudyResult_Ok);   // 확인 버튼
 
@@ -95,6 +98,10 @@ public class Study_Result extends AppCompatActivity {
                 // Intent를 생성하고 파일 경로 값을 설정하여 Study_Result로 전달
                 Intent intent = new Intent(Study_Result.this, MainActivity.class);
                 intent.putExtra("Review", false);      // 복습하기 리스트 해제 ( 집중모드 해제 )
+
+                // 액티비티 스택을 지우고 새로운 작업으로 시작하기 위한 플래그 설정
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
                 startActivity(intent);
             }
         });
@@ -103,12 +110,14 @@ public class Study_Result extends AppCompatActivity {
         // 학습 태도 결과 출력 메서드
 
         // 학습 태도 결과 안좋을 때
-        // 학습하기 리스트인 경우 : 복습하기 리스트에 추가
+        // if ( IsStudyList && Study_Result <= 60% ) 조건 추가하기!
+        if (IsStudyList) {          // 학습하기 리스트인 경우 : 복습하기 리스트에 추가
+            AddReviewList(Subject);
+        }
         // 복습하기 리스트인 경우 : 그대로 유지
 
-        // 받아온 값을 통해 Subject Category Document ID 추출 + 학습 태도 결과가 좋다면 복습 리스트에서 파일 삭제
+        // 받아온 값을 통해 Subject Category Document ID 추출 + 학습 태도 결과가 좋다면 복습 리스트에서 파일 삭제 ( Delete_FireStore 메서드 실행 )
         ReturnSubjectDocRef(Subject);
-        //Delete_FireStore(fileName);
     }
     // Toast 출력
     private void startToast(String msg) {     // Toast 띄우는 함수
@@ -118,7 +127,6 @@ public class Study_Result extends AppCompatActivity {
 
     // FireStore에서 Review_FileInfo 정보 삭제 : 복습 완료 했을 때
     // ex) 학습 성실도가 60% 이상이면, 자동으로 삭제되도록 한다.
-
     private void Delete_FireStore(String FileToDelete, String subjectDocId) {
 
         // Test
@@ -190,6 +198,74 @@ public class Study_Result extends AppCompatActivity {
                             Log.d(TAG, "ReturnDocRef 메서드 : Error getting documents: ", task.getException());
                         }
                     }
+                });
+    }
+    // 복습리스트 FireStore에 파일 정보를 추가 : 과목 추가 및 검색
+    private void AddReviewList(String subject) {
+        CollectionReference userRef = db.collection("users");
+        DocumentReference userDocRef = userRef.document(user.getUid());
+
+        userDocRef.collection("Review_SubjectCategory")
+                .whereEqualTo("subject", subject)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (task.getResult().isEmpty()) {       // Review_SubjectCategory 컬렉션이 없는 경우 ( 문서가 없는 경우 )
+                            Map<String, Object> newCategory = new HashMap<>();      // 새로운 데이터(과목) 추가하기
+                            newCategory.put("subject", subject);
+
+                            userDocRef.collection("Review_SubjectCategory")
+                                    .add(newCategory)
+                                    .addOnSuccessListener(documentReference -> {
+                                        // 새로운 과목 카테고리 문서 생성 성공
+                                        String newSubjectId = documentReference.getId();
+                                        Add_Review_FileInfo(userDocRef, newSubjectId, subject);    // 파일 정보 추가하기
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // 새로운 과목 카테고리 문서 생성 실패
+                                        Log.w(TAG, "AddReviewList : 과목 카테고리 문서 생성 실패", e);
+                                    });
+                        } else {
+                            // Review_SubjectCategory 컬렉션이 존재하는 경우
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                String SubjectId = document.getId();
+                                Add_Review_FileInfo(userDocRef, SubjectId, subject);       // 파일 정보 추가하기
+                            }
+                        }
+                    } else {
+                        Log.d(TAG, "AddReviewList : 과목 카테고리 문서 찾기 실패: ", task.getException());
+                    }
+                });
+    }
+
+    // 해당하는 과목 복습리스트 FireStore에 파일 정보를 추가
+    private void Add_Review_FileInfo(DocumentReference userDocRef, String SubjectId, String subject) {
+        // Review_FileInfo 컬렉션 가져오기
+        CollectionReference FileInfoRef = userDocRef
+                .collection("Review_SubjectCategory")
+                .document(SubjectId)
+                .collection("Review_FileInfo");
+
+        String DirectoryPath = "users/" + user.getUid() + "/Subject/" + subject;
+
+        // FileInfoMap에 데이터 세팅
+        Map<String, Object> FileInfoMap = new HashMap<>();
+        FileInfoMap.put("SubjectCategoryId", subject);      // 해당 파일의 과목 카테고리(필드) 추가
+        FileInfoMap.put("FileName", fileName);              // 식별자로 사용
+        FileInfoMap.put("DirectoryPath", DirectoryPath);         // 디렉토리 경로
+
+        // FireStore : Review_FileInfoRef Collection에 데이터 추가
+        FileInfoRef.document(fileName)
+                .set(FileInfoMap)
+                .addOnSuccessListener(aVoid -> {
+                    // 데이터(문서) 추가 성공
+                    Log.d(TAG, "Review_FileInfo Collection 데이터(문서)추가 성공: " + fileName);
+                    startToast("복습리스트에 파일 추가" + "\n" + fileName);
+                })
+                .addOnFailureListener(e -> {
+                    // 데이터(문서) 추가 실패
+                    Log.w(TAG, "Review_FileInfo Collection 데이터(문서)추가 실패", e);
+                    startToast("복습리스트에 파일 추가 실패" + "\n" + fileName);
                 });
     }
 }

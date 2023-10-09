@@ -71,18 +71,18 @@ public class FileList extends AppCompatActivity {
     private String fileName;         // 파일 이름
     private String Subject;          // 해당 과목
     private MutableLiveData<Uri> selectedFileUri;       // File Uri
-    private boolean Review;     // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
-
+    private boolean Review;     // 집중모드인지 구별하기 위한 변수
+    private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_list);
 
-        Review = false;         // 복습하기 리스트 아님
+        IsStudyList = true;        // 학습하기 리스트
 
         // Intent에서 데이터 받아오기
         Subject = getIntent().getStringExtra("selectedSubject");
-        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 여부
+        Review = getIntent().getBooleanExtra("Review", Review);         // 집중모드 리스트 여부
 
         // 받아온 값을 통해 Subject Category Document ID 추출
         ReturnSubjectDocRef(Subject);
@@ -92,7 +92,7 @@ public class FileList extends AppCompatActivity {
 
         //값 전달 test
         Log.d(TAG, "받아온 과목 이름 : " + Subject);
-        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
+        Log.d(TAG, "Review: 받아온 집중모드 여부 : " + Review);
         Log.d(TAG, "추출한 Subject Collection DocumentID : " + subjectDocId);  // 여기가 왜 null인지 모르겠다.
 
         selectedFileUri = new MutableLiveData<>();     // 사용자가 선택한 파일의 URI 변수
@@ -157,7 +157,6 @@ public class FileList extends AppCompatActivity {
                 //Log.d(TAG, "전달한 파일 이름 : " + fileName);
 
                 startActivity(intent);
-
             }
         });
 
@@ -271,24 +270,35 @@ public class FileList extends AppCompatActivity {
                                 Log.d(TAG, selectedIndexes + " : 인덱스 선택");
                             }
                         });
-                    } else {
-                        fileName = fileRef.getName();  // 전역변수 : fileName 구하기
-                        TimeStore(fileName);           // 공부 시작 시간 저장
+                    }
+                    // 다른 동작 처리 (아이템 클릭 시의 다른 동작)
+                    else {
 
-                        // PDF 파일을 업로드하고 파일 경로 값을 전달하는 부분
-                        String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
+                            fileName = fileRef.getName();  // 전역변수 : fileName 구하기
+                            //TimeStore(fileName);           // 공부 시작 시간 저장
 
-                        Log.d(TAG, "FileAdapter : 전달된 파일 경로 : " + DirectoryPath);
+                            // PDF 파일을 업로드하고 파일 경로 값을 전달하는 부분
+                            String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
+                            Log.d(TAG, "FileAdapter : 전달된 파일 경로 : " + DirectoryPath);
 
-                        // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달 ( 뷰어 이동 )
-                        Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
-                        intent.putExtra("DirectoryPath", DirectoryPath);
-                        intent.putExtra("fileName", fileName);
-                        intent.putExtra("Subject", Subject);    // 과목이름 전달
-                        intent.putExtra("Review", Review);      // 집중모드 여부 전달
+                        if(Review) {    // 집중모드일 경우 : "집중모드가 실행됩니다"창 띄우기
+                            Check_Dialog(Subject, fileName, DirectoryPath);
+                        }
 
-                        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
-                        startActivity(intent);
+                        else {          // 집중모드가 아닐 경우
+
+                            TimeStore(fileName);           // 공부 시작 시간 저장
+                            // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달 ( 뷰어 이동 )
+                            Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
+                            intent.putExtra("DirectoryPath", DirectoryPath);
+                            intent.putExtra("fileName", fileName);
+                            intent.putExtra("Subject", Subject);    // 과목이름 전달
+                            intent.putExtra("Review", Review);      // 집중모드 여부 전달
+                            intent.putExtra("IsStudyList", IsStudyList);   // 학습하기 or 복습하기 리스트 여부 전달
+
+                            Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
+                            startActivity(intent);
+                        }
                     }
                 }
             });
@@ -653,12 +663,60 @@ public class FileList extends AppCompatActivity {
                                 Log.d(TAG,FileToDelete + " : FireStore 파일 삭제 실패 : " + e.getMessage());
                             });
                 }
+
+                // 복습하기 리스트에도 존재할 경우, 함께 삭제
+                Check_Delete_ReviewList(FileToDelete, Subject);
+
             } else {
                 // 파일리스트 검색 실패 시 처리 ( Query )
                 System.out.println("파일리스트 쿼리 실패: " + task.getException().getMessage());
             }
         });
     }
+
+    // 삭제할 과목이 복습하기 리스트에도 존재하는지 확인하고 삭제하는 메서드
+    private void Check_Delete_ReviewList(String FileToDelete, String Subject) {
+
+        CollectionReference userRef = db.collection("users");
+        DocumentReference userDocRef = userRef.document(user.getUid());
+
+        // Review_SubjectCategory 컬렉션 접근
+        CollectionReference Review_subjectCategoryRef = userDocRef
+                .collection("Review_SubjectCategory");
+
+        // 복습하기 리스트의 '과목' 먼저 접근
+        Query Subject_query = Review_subjectCategoryRef.whereEqualTo("subject", Subject);
+
+        Subject_query.get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // 일치하는 문서를 찾았을 때 삭제 ( 과목 카테고리 )
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+
+                            // 해당 과목 문서 ID 추출
+                            String documentId = document.getId();
+
+                            // Review_FileInfo 컬렉션 접근 ( 하위 컬렉션 접근 )
+                            CollectionReference Review_FileInfoRef = Review_subjectCategoryRef
+                                    .document(documentId)
+                                    .collection("Review_FileInfo");
+
+                            // 해당 파일 삭제
+                            Review_FileInfoRef.document(FileToDelete)
+                                    .delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        //startToast("FireStore (복습 필요) 파일 삭제 성공");
+                                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : FireStore 복습리스트 파일 삭제 성공 : " + FileToDelete);
+
+                                    }).addOnFailureListener(e -> {
+                                        // 상위 문서 삭제 실패
+                                        Log.d(TAG, "Check_Delete_ReviewList 메서드 : FireStore 복습리스트 과목 삭제 실패 : " + FileToDelete + " : " + e.getMessage());
+                                    });
+                        }
+                    }
+                });
+
+    }
+
     // Storage에서 해당 파일 삭제
     private void TodeleteFile(String FileToDelete) {
         // * Storage 참조 변수 생성
@@ -684,6 +742,64 @@ public class FileList extends AppCompatActivity {
                     startToast(FileToDelete + " : 파일 삭제 실패");
                     Log.d(TAG, FileToDelete + " : 파일 삭제 실패");
                 });
+    }
+
+    //  Dialog : 학습을 시작하시겠습니까? '집중모드'가 실행됩니다.
+    private void Check_Dialog(String Subject, String fileName, String DirectoryPath) {
+
+        // Dialog Builder 생성
+        AlertDialog.Builder builder = new AlertDialog.Builder(FileList.this);
+
+        // Dialog 레이아웃 설정
+        View Dialog_view = LayoutInflater.from(FileList.this).inflate(R.layout.dialog_yes_or_back, null);
+        builder.setView(Dialog_view);
+
+        // Dialog 의 TextvView, Button 추가
+        TextView Text1 = Dialog_view.findViewById(R.id.Check_Text1);
+        TextView Text2 = Dialog_view.findViewById(R.id.Check_Text2);
+
+        String dynamicText1 = "학습을 시작하시겠습니까?";      // TextView에 세팅하기위한 Text
+        String dynamicText2 = "<집중모드>가 실행됩니다.";
+        Text1.setText(dynamicText1);    // 텍스트 설정
+        Text2.setText(dynamicText2);
+
+        Button OKButton = Dialog_view.findViewById(R.id.Check_Ok_Button);            // 확인 버튼
+        Button BackButton = Dialog_view.findViewById(R.id.Check_Back_Button);        // 돌아가기 버튼
+
+        // Dialog 생성
+        AlertDialog alertDialog = builder.create();     // 객체 생성
+        alertDialog.show();         // 사용자에게 보여주기
+
+        // 확인 버튼 클릭 : 집중모드 실행 + PDF 뷰어 연결
+        OKButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                TimeStore(fileName);           // 공부 시작 시간 저장
+
+                // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달 ( 뷰어 이동 )
+                Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
+                intent.putExtra("DirectoryPath", DirectoryPath);
+                intent.putExtra("fileName", fileName);
+                intent.putExtra("Subject", Subject);    // 과목이름 전달
+                intent.putExtra("IsStudyList", IsStudyList);   // 학습하기 & 복습하기 리스트 여부 전달 : 복습하기 리스트 ( false )
+
+                // 복습하기 리스트에서는 '집중모드' 자동실행 ( * 집중모드가 실행되는 곳은 PDF 뷰어 )
+                intent.putExtra("Review", Review);    // 집중모드 여부 전달
+
+                startActivity(intent);
+
+                alertDialog.dismiss();      // Dialog창 닫기
+            }
+        });
+
+        // 돌아가기 버튼 클릭
+        BackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }   // Dialog창 닫기
+        });
     }
 
 }

@@ -68,7 +68,8 @@ public class SubjectCategory extends AppCompatActivity {
     private FloatingActionButton SubjectDeleteButton_Ok;     // 과목 삭제 완료 버튼
     private FloatingActionButton MenuButton;        // 메뉴 선택 버튼
     private FloatingActionButton Menu_XButton;      // 메뉴 선택 취소 버튼
-    private boolean Review; // 복습하기 리스트(집중모드 O)인지 구별하기 위한 변수
+    private boolean Review; // 집중모드인지 구별하기 위한 변수
+    private boolean GoToManggag;    // 망각곡선 바로가기를 위한 변수
 
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -83,7 +84,6 @@ public class SubjectCategory extends AppCompatActivity {
         MenuButton = findViewById(R.id.Subject_MenuButton);             // 메뉴 선택 버튼
         Menu_XButton = findViewById(R.id.Subject_Menu_XButton);         // 메뉴 선택 취소 버튼
 
-        MenuCancleClick();    // 메뉴 선택하기 버튼 생성 ( 메뉴 초기화 )
 
         // 메뉴 선택하기 버튼 이벤트 처리 : 버튼 클릭했을 때 과목 추가&삭제 버튼 나옴
         MenuButton.setOnClickListener(new View.OnClickListener() {
@@ -107,8 +107,24 @@ public class SubjectCategory extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.SubjectList);
 
         // intent에서 데이터 받아오기
-        Review = getIntent().getBooleanExtra("Review", Review);         // 복습하기 리스트 (집중모드) 여부
-        Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
+        Review = getIntent().getBooleanExtra("Review", Review);         // 집중모드 여부
+        Log.d(TAG, "Review: 받아온 집중모드 여부 : " + Review);
+        GoToManggag = getIntent().getBooleanExtra("GoToManggag", GoToManggag);    // 망각곡선 바로가기 여부
+        Log.d(TAG, "GoToManggag: 받아온 망각곡선 바로가기 여부 : " + GoToManggag);
+
+        if(GoToManggag) {       // 망각곡선 바로가기일 경우, 모든 메뉴 버튼 숨기기
+            MenuButton.setVisibility(View.GONE);
+            Menu_XButton.setVisibility(View.GONE);
+            SubjectAddButton.setVisibility(View.GONE);
+            SubjectDeleteButton.setVisibility(View.GONE);
+            SubjectDeleteButton_Back.setVisibility(View.GONE);
+            SubjectDeleteButton_Ok.setVisibility(View.GONE);
+
+            startToast("확인하고자 하는 과목을 선택하세요.");
+
+        } else {
+            MenuCancleClick();    // 메뉴 선택하기 버튼 생성 ( 메뉴 초기화 )
+        }
 
         // 카테고리 목록 불러오기
         CategoryLoad();
@@ -192,18 +208,33 @@ public class SubjectCategory extends AppCompatActivity {
                             }
                         });
 
-                    } else {        // 다른 동작 처리 (아이템 클릭 시의 다른 동작)
+                    }
+                    else {        // 다른 동작 처리 (아이템 클릭 시의 다른 동작)
 
                         // 클릭한 아이템의 정보를 가져옴 : 아이템 이름
                         String selectedSubject = SubjectRef.getName();
-                        // 선택한 항목의 정보를 Intent에 담아 File.Class를 시작
-                        Intent intent = new Intent(SubjectCategory.this, FileList.class);
-                        intent.putExtra("selectedSubject", selectedSubject);    // 과목이름 전달
-                        intent.putExtra("Review", Review);      // 집중모드 여부 전달
-                        Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
-                        Log.d(TAG, "전달한 복습하기 리스트 (집중모드) 여부 : " + Review);
 
-                        startActivity(intent);
+                        if(GoToManggag) {   // 사용자가 '망각곡선 바로가기'를 통해 들어왔다면 : 바로 망각곡선 선택 리스트로 이동
+
+                            Intent intent = new Intent(SubjectCategory.this, FileList_Manggag_view.class);
+                            intent.putExtra("Subject", selectedSubject);    // 과목이름 전달
+
+                            Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
+
+                            startActivity(intent);
+
+                        } else {    // 사용자가 '망각곡선 바로가기'를 통해 들어온 것이 아닐 때 : 일반 파일리스트로 이동
+
+                            // 선택한 항목의 정보를 Intent에 담아 File.Class를 시작
+                            Intent intent = new Intent(SubjectCategory.this, FileList.class);
+                            intent.putExtra("selectedSubject", selectedSubject);    // 과목이름 전달
+                            intent.putExtra("Review", Review);      // 집중모드 여부 전달
+
+                            Log.d(TAG, "전달한 과목 이름 : " + selectedSubject);
+                            Log.d(TAG, "전달한 집중모드 여부 : " + Review);
+
+                            startActivity(intent);
+                        }
                     }
                 }
             });
@@ -503,7 +534,7 @@ public class SubjectCategory extends AppCompatActivity {
                             });
 
                     // 복습하기 리스트에도 존재할 경우, 함께 삭제
-                    Check_Delete_ReviewList(SubjectToDelete, documentId);
+                    Check_Delete_ReviewList(SubjectToDelete);
                 }
             } else {
                 // 과목 카테고리 검색 실패 시 처리 ( Query )
@@ -514,7 +545,7 @@ public class SubjectCategory extends AppCompatActivity {
     }
 
     // 삭제할 과목이 복습하기 리스트에도 존재하는지 확인하고 삭제하는 메서드
-    private void Check_Delete_ReviewList(String SubjectToDelete, String subjectDocId) {
+    private void Check_Delete_ReviewList(String SubjectToDelete) {
 
         CollectionReference userRef = db.collection("users");
         DocumentReference userDocRef = userRef.document(user.getUid());
