@@ -119,6 +119,9 @@ public class SubjectCategory extends AppCompatActivity {
             SubjectDeleteButton.setVisibility(View.GONE);
             SubjectDeleteButton_Back.setVisibility(View.GONE);
             SubjectDeleteButton_Ok.setVisibility(View.GONE);
+
+            startToast("확인하고자 하는 과목을 선택하세요.");
+
         } else {
             MenuCancleClick();    // 메뉴 선택하기 버튼 생성 ( 메뉴 초기화 )
         }
