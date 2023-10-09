@@ -275,12 +275,19 @@ public class FileList extends AppCompatActivity {
                     else {
 
                             fileName = fileRef.getName();  // 전역변수 : fileName 구하기
-                            TimeStore(fileName);           // 공부 시작 시간 저장
+                            //TimeStore(fileName);           // 공부 시작 시간 저장
 
                             // PDF 파일을 업로드하고 파일 경로 값을 전달하는 부분
                             String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
                             Log.d(TAG, "FileAdapter : 전달된 파일 경로 : " + DirectoryPath);
 
+                        if(Review) {    // 집중모드일 경우 : "집중모드가 실행됩니다"창 띄우기
+                            Check_Dialog(Subject, fileName, DirectoryPath);
+                        }
+
+                        else {          // 집중모드가 아닐 경우
+
+                            TimeStore(fileName);           // 공부 시작 시간 저장
                             // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달 ( 뷰어 이동 )
                             Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
                             intent.putExtra("DirectoryPath", DirectoryPath);
@@ -291,6 +298,7 @@ public class FileList extends AppCompatActivity {
 
                             Log.d(TAG, "Review: 받아온 복습하기 리스트 (집중모드) 여부 : " + Review);
                             startActivity(intent);
+                        }
                     }
                 }
             });
@@ -734,6 +742,64 @@ public class FileList extends AppCompatActivity {
                     startToast(FileToDelete + " : 파일 삭제 실패");
                     Log.d(TAG, FileToDelete + " : 파일 삭제 실패");
                 });
+    }
+
+    //  Dialog : 학습을 시작하시겠습니까? '집중모드'가 실행됩니다.
+    private void Check_Dialog(String Subject, String fileName, String DirectoryPath) {
+
+        // Dialog Builder 생성
+        AlertDialog.Builder builder = new AlertDialog.Builder(FileList.this);
+
+        // Dialog 레이아웃 설정
+        View Dialog_view = LayoutInflater.from(FileList.this).inflate(R.layout.dialog_yes_or_back, null);
+        builder.setView(Dialog_view);
+
+        // Dialog 의 TextvView, Button 추가
+        TextView Text1 = Dialog_view.findViewById(R.id.Check_Text1);
+        TextView Text2 = Dialog_view.findViewById(R.id.Check_Text2);
+
+        String dynamicText1 = "학습을 시작하시겠습니까?";      // TextView에 세팅하기위한 Text
+        String dynamicText2 = "<집중모드>가 실행됩니다.";
+        Text1.setText(dynamicText1);    // 텍스트 설정
+        Text2.setText(dynamicText2);
+
+        Button OKButton = Dialog_view.findViewById(R.id.Check_Ok_Button);            // 확인 버튼
+        Button BackButton = Dialog_view.findViewById(R.id.Check_Back_Button);        // 돌아가기 버튼
+
+        // Dialog 생성
+        AlertDialog alertDialog = builder.create();     // 객체 생성
+        alertDialog.show();         // 사용자에게 보여주기
+
+        // 확인 버튼 클릭 : 집중모드 실행 + PDF 뷰어 연결
+        OKButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                TimeStore(fileName);           // 공부 시작 시간 저장
+
+                // Intent를 생성하고 파일 경로 값을 설정하여 PdfViewerActivity로 전달 ( 뷰어 이동 )
+                Intent intent = new Intent(FileList.this, PDFViewerActivity.class);
+                intent.putExtra("DirectoryPath", DirectoryPath);
+                intent.putExtra("fileName", fileName);
+                intent.putExtra("Subject", Subject);    // 과목이름 전달
+                intent.putExtra("IsStudyList", IsStudyList);   // 학습하기 & 복습하기 리스트 여부 전달 : 복습하기 리스트 ( false )
+
+                // 복습하기 리스트에서는 '집중모드' 자동실행 ( * 집중모드가 실행되는 곳은 PDF 뷰어 )
+                intent.putExtra("Review", Review);    // 집중모드 여부 전달
+
+                startActivity(intent);
+
+                alertDialog.dismiss();      // Dialog창 닫기
+            }
+        });
+
+        // 돌아가기 버튼 클릭
+        BackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }   // Dialog창 닫기
+        });
     }
 
 }
