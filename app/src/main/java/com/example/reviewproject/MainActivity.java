@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         // 집중모드
         Study_button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) { Study_Dialog(Study_button); }
+            public void onClick(View view) { Study_Dialog((Button) Study_button); }
         });
 
         // 망각곡선

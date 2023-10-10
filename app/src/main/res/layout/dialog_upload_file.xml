@@ -2,7 +2,7 @@
     android:id="@+id/pad"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#BDDA9B"
+    android:background="#CBD5DD"
     android:orientation="vertical">
 
     <EditText
@@ -17,7 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:backgroundTint="#4CAF50"
+        android:backgroundTint="#EAEAEA"
         android:text="파일 선택"
         android:textColor="#000000"/>
 
@@ -26,7 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:backgroundTint="#4CAF50"
+        android:backgroundTint="#EAEAEA"
         android:text="업로드"
         android:textColor="#000000"/>
 
@@ -35,7 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:backgroundTint="#4CAF50"
+        android:backgroundTint="#EAEAEA"
         android:text="취소"
         android:textColor="#000000"/>
 
