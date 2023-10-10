@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#BDDA9B"
+    android:background="#EAEAEA"
     android:orientation="vertical">
 
     <!-- TextViews 수직 정렬 -->
@@ -42,7 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
-            android:backgroundTint="#4CAF50"
+            android:backgroundTint="#CBD5DD"
             android:text="확인"
             android:textColor="#000000"/>
 
@@ -51,7 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:backgroundTint="#4CAF50"
+            android:backgroundTint="#CBD5DD"
             android:text="돌아가기"
             android:textColor="#000000"/>
     </LinearLayout>

@@ -57,15 +57,15 @@
                 android:id="@+id/checkbutton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#FFFFFF"
+                android:backgroundTint="#CBD5DD"
                 android:text="로그인"
-                android:textColor="#000000"/>
+                android:textColor="#000000" />
 
             <Button
                 android:id="@+id/signupbutton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#FFFFFF"
+                android:backgroundTint="#CBD5DD"
                 android:text="회원가입"
                 android:textColor="#000000"/>
 
@@ -73,7 +73,7 @@
                 android:id="@+id/gotoPasswordResetButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#FFFFFF"
+                android:backgroundTint="#CBD5DD"
                 android:text="비밀번호를 잊으셨나요?"
                 android:textColor="#000000"/>
 
