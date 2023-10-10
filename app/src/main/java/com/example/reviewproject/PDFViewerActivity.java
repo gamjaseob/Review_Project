@@ -135,7 +135,8 @@ public class PDFViewerActivity extends AppCompatActivity {
                     @Override
                     public void loadComplete(int nbPages) {
                         // PDF가 로드 완료되었을 때 실행
-                        startToast("파일 열기 성공");
+                        //startToast("파일 열기 성공");
+                        Log.d(TAG, "파일 열기 성공");
                     }
                 })
                 .scrollHandle(new DefaultScrollHandle(PDFViewerActivity.this))
