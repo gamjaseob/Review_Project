@@ -192,7 +192,6 @@ public class Review_FileList extends AppCompatActivity {
                 public void onClick(View view) {        // 파일리스트 아이템 클릭 이벤트
 
                         fileName = fileRef.getName();  // 전역변수 : fileName 구하기
-                        TimeStore(fileName,Subject);           // 공부 시작 시간 저장
 
                         // 파일 경로 값을 전달하는 부분
                         String DirectoryPath = "users/" + user.getUid() + "/Subject/" + Subject;
@@ -316,6 +315,8 @@ public class Review_FileList extends AppCompatActivity {
                 intent.putExtra("Review", true);    // 집중모드 여부 전달
 
                 startActivity(intent);
+
+                TimeStore(fileName,Subject);           // 공부 시작 시간 저장
 
                 alertDialog.dismiss();      // Dialog창 닫기
             }
