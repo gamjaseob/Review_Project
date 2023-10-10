@@ -59,7 +59,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="망각곡선"
+                    android:text="망각곡선 열람"
                     android:textSize="20sp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginTop="8dp"
@@ -255,6 +255,27 @@
                     android:layout_height="192dp"
                     android:layout_gravity="center"
                     android:src="@drawable/advertising" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:text="추가예정"
+                    android:textSize="20sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginRight="8dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Update"
+                    android:textSize="15sp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"/>
+                <ImageView
+                    android:layout_width="250dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/button1"
+                    android:layout_gravity="center"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
