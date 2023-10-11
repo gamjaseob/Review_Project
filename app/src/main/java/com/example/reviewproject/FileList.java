@@ -80,6 +80,8 @@ public class FileList extends AppCompatActivity {
 
         IsStudyList = true;        // 학습하기 리스트
 
+        startToast("학습하고자 하는 파일을 선택하세요");
+
         // Intent에서 데이터 받아오기
         Subject = getIntent().getStringExtra("selectedSubject");
         Review = getIntent().getBooleanExtra("Review", Review);         // 집중모드 리스트 여부

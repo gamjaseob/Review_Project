@@ -84,6 +84,7 @@ public class SubjectCategory extends AppCompatActivity {
         MenuButton = findViewById(R.id.Subject_MenuButton);             // 메뉴 선택 버튼
         Menu_XButton = findViewById(R.id.Subject_Menu_XButton);         // 메뉴 선택 취소 버튼
 
+        startToast("학습하고자 하는 과목을 선택하세요");
 
         // 메뉴 선택하기 버튼 이벤트 처리 : 버튼 클릭했을 때 과목 추가&삭제 버튼 나옴
         MenuButton.setOnClickListener(new View.OnClickListener() {
