@@ -1,9 +1,12 @@
 package com.example.reviewproject;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -45,6 +48,7 @@ import com.google.firebase.storage.ListResult;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -71,6 +75,7 @@ public class FileList extends AppCompatActivity {
     private String fileName;         // 파일 이름
     private String Subject;          // 해당 과목
     private MutableLiveData<Uri> selectedFileUri;       // File Uri
+    private String selectedFileName;            // FileName
     private boolean Review;     // 집중모드인지 구별하기 위한 변수
     private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
     @Override
@@ -79,6 +84,8 @@ public class FileList extends AppCompatActivity {
         setContentView(R.layout.activity_file_list);
 
         IsStudyList = true;        // 학습하기 리스트
+
+        startToast("학습하고자 하는 파일을 선택하세요");
 
         // Intent에서 데이터 받아오기
         Subject = getIntent().getStringExtra("selectedSubject");
@@ -102,8 +109,13 @@ public class FileList extends AppCompatActivity {
                 new ActivityResultCallback<Uri>() {
                     @Override
                     public void onActivityResult(Uri result) {
-                        // 선택한 파일의 URI 가져오기
-                        selectedFileUri.setValue(result);
+                        if (result != null) {
+                            // 선택한 파일의 URI 가져오기
+                            selectedFileUri.setValue(result);
+                            // 선택한 파일의 이름 가져오기
+                            selectedFileName = getFileNameFromUri(result);
+                        }
+
                     }
                 }
         );
@@ -437,12 +449,13 @@ public class FileList extends AppCompatActivity {
         // Dialog 의 EditText, Button 추가
         EditText fileNameEditText = view.findViewById(R.id.file_name);          // 파일 이름
         Button selectFileButton = view.findViewById(R.id.select_button);        // 파일 선택 버튼
+        Button ModifyFileButton = view.findViewById(R.id.modify_button);        // 파일 이름 수정 버튼
         Button uploadButton = view.findViewById(R.id.upload_button);            // 업로드 버튼
         Button cancelButton = view.findViewById(R.id.cancel_button);            // 취소 버튼
 
         // EditText에 세팅하기위한 Text
-        String dynamicText1 = "파일 이름을 입력해주세요. (특수문자 제외)";
-        fileNameEditText.setText(dynamicText1);    // 텍스트 설정
+        //String dynamicText1 = "파일 이름을 입력해주세요. (특수문자 제외)";
+        //fileNameEditText.setText(dynamicText1);    // 텍스트 설정
 
         // Dialog 생성
         AlertDialog alertDialog = builder.create();     // 객체 생성
@@ -452,9 +465,17 @@ public class FileList extends AppCompatActivity {
         selectFileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //launchFilePicker(selectFileLauncher);
-                startToast("파일 선택 후, 파일 이름을 입력해주세요!");
+                startToast("파일 이름 수정 버튼을 클릭하면" + '\n' + "파일 이름 수정이 가능합니다.");
                 selectFileLauncher.launch("*/*");      // 모든 파일 형식
+            }
+        });
+
+        // 파일 이름 수정하기
+        ModifyFileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fileNameEditText.setText(selectedFileName);    // 파일명 가져오기
+                fileName = fileNameEditText.getText().toString();
             }
         });
 
@@ -462,6 +483,11 @@ public class FileList extends AppCompatActivity {
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(fileName == null) {      // 사용자가 파일 이름 수정을 안했을 경우
+                    fileNameEditText.setText(selectedFileName);    // 파일 이름 그대로 가져오기
+
+                }
                 // EditText에서 파일 이름 가져오기
                 fileName = fileNameEditText.getText().toString();
 
@@ -800,6 +826,35 @@ public class FileList extends AppCompatActivity {
                 alertDialog.dismiss();
             }   // Dialog창 닫기
         });
+    }
+
+    // Uri에서 파일 이름을 추출하는 메서드
+    private String getFileNameFromUri(Uri uri) {
+        String fileName = null;
+        String scheme = uri.getScheme();
+        if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
+            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    int displayNameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (displayNameIndex != -1) {
+                        fileName = cursor.getString(displayNameIndex);
+                    }
+                }
+                cursor.close();
+            }
+        }
+        if (fileName == null) {
+            // ContentResolver로 파일 이름을 가져올 수 없는 경우, Uri의 마지막 경로 요소를 사용한다.
+            String path = uri.getPath();
+            if (path != null) {
+                int separatorIndex = path.lastIndexOf(File.separator);
+                if (separatorIndex != -1 && separatorIndex < path.length() - 1) {
+                    fileName = path.substring(separatorIndex + 1);
+                }
+            }
+        }
+        return fileName;
     }
 
 }

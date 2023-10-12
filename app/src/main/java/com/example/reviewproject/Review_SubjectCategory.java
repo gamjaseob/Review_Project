@@ -73,6 +73,8 @@ public class Review_SubjectCategory extends AppCompatActivity {
         super.onCreate(saveInstanceState);
         setContentView(R.layout.activity_subject_category);     // 사용하던 XML파일 사용
 
+        startToast("복습하고자 하는 과목을 선택하세요");
+
         // inflate된 레이아웃에서 버튼 찾아 초기화
         SubjectAddButton = findViewById(R.id.SubjectAddButton);         // 과목 추가 버튼
         SubjectDeleteButton = findViewById(R.id.SubjectDeleteButton);   // 과목 삭제 버튼

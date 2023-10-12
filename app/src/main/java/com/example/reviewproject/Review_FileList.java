@@ -80,6 +80,8 @@ public class Review_FileList extends AppCompatActivity {
 
         IsStudyList = false;       // 복습하기 리스트
 
+        startToast("복습하고자 하는 파일을 선택하세요");
+
         // 복습하기 리스트에서는 '집중모드' 자동실행 ( * 집중모드가 실행되는 곳은 PDF 뷰어 )
 
         // Intent에서 선택한 과목 이름 받아오기
