@@ -22,6 +22,15 @@
         android:textColor="#000000"/>
 
     <Button
+        android:id="@+id/modify_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:backgroundTint="#EAEAEA"
+        android:text="파일 이름 수정"
+        android:textColor="#000000"/>
+
+    <Button
         android:id="@+id/upload_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
