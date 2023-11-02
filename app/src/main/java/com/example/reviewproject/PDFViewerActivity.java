@@ -1,6 +1,8 @@
 package com.example.reviewproject;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,7 +38,34 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 
-public class PDFViewerActivity extends AppCompatActivity {
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
+import android.media.Image;
+import android.util.Log;
+import android.view.TextureView;
+import android.view.ViewStub;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.camera.core.ImageProxy;
+import androidx.core.app.ActivityCompat;
+
+import org.pytorch.IValue;
+import org.pytorch.LiteModuleLoader;
+import org.pytorch.Module;
+import org.pytorch.Tensor;
+import org.pytorch.torchvision.TensorImageUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+
+public class PDFViewerActivity extends AbstractCameraXActivity<PDFViewerActivity.AnalysisResult>{
     private static final String TAG = "PDFViewerActivity";     // TAG 추가
 
     // 현재 사용자 불러오기
@@ -52,6 +81,12 @@ public class PDFViewerActivity extends AppCompatActivity {
     private boolean Review;     // 집중모드인지 구별하기 위한 변수
     private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
 
+    private boolean result;
+
+    //ai추가
+    private Module mModule = null;
+    private ResultView mResultView;
+
     @Override
     public void onBackPressed() {       // 뒤로가기 눌렀을 때
         // '학습을 종료하시겠습니까?' Dialog 띄우기 -> 학습 종료 시간 기록
@@ -63,6 +98,8 @@ public class PDFViewerActivity extends AppCompatActivity {
         super.onDestroy();
         deleteTempFile();   // PDF Viewer용 임시파일 삭제
     }
+
+    Calendar c = Calendar.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,11 +126,8 @@ public class PDFViewerActivity extends AppCompatActivity {
         // true : 학습하기, false : 복습하기
 
         if(Review){     // 집중모드일 경우
-
-
-
             // 집중모드 실행 메서드
-
+            startBackgroundThread();
 
         }
 
@@ -204,7 +238,18 @@ public class PDFViewerActivity extends AppCompatActivity {
                 if(Review) {     // '복습하기' 리스트(집중모드 O)에서 실행한 PDF 뷰어라면
 
                     // 학습태도 분석 로직 넣기
+                    double sec1 = c.get(Calendar.SECOND);
 
+                    Calendar cal = Calendar.getInstance();
+                    double sec2 = cal.get(Calendar.SECOND);
+
+                    double sec3 = sec2 - sec1;
+                    if(sec3 < 10){
+                        result = true;
+                    }
+                    else {
+                        result = false;
+                    }
 
                     // 학습태도 분석 결과로 이동
                     // Intent를 생성하고 파일 경로 값을 설정하여 Study_Result로 전달
@@ -214,6 +259,9 @@ public class PDFViewerActivity extends AppCompatActivity {
                     intent.putExtra("Subject", Subject);    // 과목이름 전달
                     intent.putExtra("Review", Review);      // 집중모드 여부 전달
                     intent.putExtra("IsStudyList", IsStudyList); // 학습하기 & 복습하기 리스트 여부 전달
+                    intent.putExtra("result", result);
+
+
                     startActivity(intent);
 
                 }else {     // '학습하기' 리스트(집중모드 X)에서 실행한 PDF 뷰어라면
@@ -292,9 +340,92 @@ public class PDFViewerActivity extends AppCompatActivity {
                 });
     }
 
+
     // Toast 출력
     private void startToast(String msg) {     // Toast 띄우는 함수
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
+    //AI 추가
+    static class AnalysisResult {
+        private final ArrayList<Result> mResults;
+
+        public AnalysisResult(ArrayList<Result> results) {
+            mResults = results;
+        }
+    }
+
+    @Override
+    protected int getContentViewLayoutId() {
+        return R.layout.activity_pdf_viewer;
+    }
+
+    @Override
+    protected TextureView getCameraPreviewTextureView() {
+        mResultView = findViewById(R.id.resultView);
+        return ((ViewStub) findViewById(R.id.object_detection_texture_view_stub))
+                .inflate()
+                .findViewById(R.id.object_detection_texture_view);
+    }
+
+    @Override
+    protected void applyToUiAnalyzeImageResult(AnalysisResult result) {
+        mResultView.setResults(result.mResults);
+        mResultView.invalidate();
+    }
+
+    private Bitmap imgToBitmap(Image image) {
+        Image.Plane[] planes = image.getPlanes();
+        ByteBuffer yBuffer = planes[0].getBuffer();
+        ByteBuffer uBuffer = planes[1].getBuffer();
+        ByteBuffer vBuffer = planes[2].getBuffer();
+
+        int ySize = yBuffer.remaining();
+        int uSize = uBuffer.remaining();
+        int vSize = vBuffer.remaining();
+
+        byte[] nv21 = new byte[ySize + uSize + vSize];
+        yBuffer.get(nv21, 0, ySize);
+        vBuffer.get(nv21, ySize, vSize);
+        uBuffer.get(nv21, ySize + vSize, uSize);
+
+        YuvImage yuvImage = new YuvImage(nv21, ImageFormat.NV21, image.getWidth(), image.getHeight(), null);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        yuvImage.compressToJpeg(new Rect(0, 0, yuvImage.getWidth(), yuvImage.getHeight()), 75, out);
+
+        byte[] imageBytes = out.toByteArray();
+        return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+    }
+
+    @Override
+    @WorkerThread
+    @Nullable
+    protected AnalysisResult analyzeImage(ImageProxy image, int rotationDegrees) {
+        try {
+            if (mModule == null) {
+                mModule = LiteModuleLoader.load(MainActivity.assetFilePath(getApplicationContext(), "yolov5s.torchscript.ptl"));
+            }
+        } catch (IOException e) {
+            Log.e("Object Detection", "Error reading assets", e);
+            return null;
+        }
+        Bitmap bitmap = imgToBitmap(image.getImage());
+        Matrix matrix = new Matrix();
+        matrix.postRotate(90.0f);
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, PrePostProcessor.mInputWidth, PrePostProcessor.mInputHeight, true);
+
+        final Tensor inputTensor = TensorImageUtils.bitmapToFloat32Tensor(resizedBitmap, PrePostProcessor.NO_MEAN_RGB, PrePostProcessor.NO_STD_RGB);
+        IValue[] outputTuple = mModule.forward(IValue.from(inputTensor)).toTuple();
+        final Tensor outputTensor = outputTuple[0].toTensor();
+        final float[] outputs = outputTensor.getDataAsFloatArray();
+
+        float imgScaleX = (float)bitmap.getWidth() / PrePostProcessor.mInputWidth;
+        float imgScaleY = (float)bitmap.getHeight() / PrePostProcessor.mInputHeight;
+        float ivScaleX = (float)mResultView.getWidth() / bitmap.getWidth();
+        float ivScaleY = (float)mResultView.getHeight() / bitmap.getHeight();
+
+        final ArrayList<Result> results = PrePostProcessor.outputsToNMSPredictions(outputs, imgScaleX, imgScaleY, ivScaleX, ivScaleY, 0, 0);
+        return new AnalysisResult(results);
+    }
 }

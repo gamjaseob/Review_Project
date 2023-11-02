@@ -67,6 +67,7 @@ public class NotificationHelper extends ContextWrapper {
 
     public NotificationCompat.Builder getChannelNotification(){
         return new NotificationCompat.Builder(getApplicationContext(), channel1ID)
+                .setContentText("복습할 시간입니다")
                 .setSmallIcon(R.drawable.ic_stat_notification);
     }
 }
