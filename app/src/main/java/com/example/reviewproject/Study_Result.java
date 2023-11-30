@@ -1,37 +1,22 @@
 package com.example.reviewproject;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseBooleanArray;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.MutableLiveData;
 
 
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -40,16 +25,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.ListResult;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Study_Result extends AppCompatActivity {
@@ -66,18 +44,26 @@ public class Study_Result extends AppCompatActivity {
     private Button Study_ResultOK_Button;  // 학습 태도 분석 결과 '확인'버튼
     private boolean IsStudyList;   // 학습하기 or 복습하기 리스트인지 구별하기 위한 변수
 
+    private boolean result;
+
+    TextView test;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_study_result);
+
+        test = (TextView) findViewById(R.id.test);
+
 
         // Intent를 통해 데이터값 받아오기
         DirectoryPath = getIntent().getStringExtra("DirectoryPath");
         fileName = getIntent().getStringExtra("fileName");
         Subject = getIntent().getStringExtra("Subject");
         IsStudyList = getIntent().getBooleanExtra("IsStudyList", IsStudyList);
-
+        result = getIntent().getBooleanExtra("result", result);
         //ReturnSubjectDocRef(Subject);
+
 
         //값 전달 test
         Log.d(TAG, "DirectoryPath: 받아온 파일 경로 : " + DirectoryPath);
@@ -111,9 +97,22 @@ public class Study_Result extends AppCompatActivity {
 
         // 학습 태도 결과 안좋을 때
         // if ( IsStudyList && Study_Result <= 60% ) 조건 추가하기!
-        if (IsStudyList) {          // 학습하기 리스트인 경우 : 복습하기 리스트에 추가
-            AddReviewList(Subject);
+        //if (IsStudyList) { }          // 학습하기 리스트인 경우 : 복습하기 리스트에 추가
+
+        if(result == false) {
+            test.setText("GOOD");
         }
+        else{
+            test.setText("BAD");
+            AddReviewList(Subject);
+            Calendar c = Calendar.getInstance();   //현재 시간가져오기
+
+            TimeSave(c);
+
+            c.add(Calendar.SECOND, 10);     //시간 계산
+            startAlarm(c);                          //알람설정
+        }
+
         // 복습하기 리스트인 경우 : 그대로 유지
 
         // 받아온 값을 통해 Subject Category Document ID 추출 + 학습 태도 결과가 좋다면 복습 리스트에서 파일 삭제 ( Delete_FireStore 메서드 실행 )
@@ -267,5 +266,21 @@ public class Study_Result extends AppCompatActivity {
                     Log.w(TAG, "Review_FileInfo Collection 데이터(문서)추가 실패", e);
                     startToast("복습리스트에 파일 추가 실패" + "\n" + fileName);
                 });
+    }
+
+    private void startAlarm(Calendar c){
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlertReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_IMMUTABLE);
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
+    }
+
+    private void TimeSave(Calendar c) {    //ArrayList<String> List
+        FirebaseFirestore db = FirebaseFirestore.getInstance();     // FireStore 인스턴스 가져오기
+        CollectionReference userRef = db.collection("users");   //  컬렉션 참조 변수
+        DocumentReference userDocRef = userRef.document(user.getUid());
+
+        Map<String, Object> timeMap = new HashMap<>();      // 데이터를 저장할 Map 객체 생성
+        timeMap.put("time", c);                             // subject 필드에 List 배열 값을 추가
     }
 }

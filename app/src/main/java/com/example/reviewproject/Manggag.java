@@ -160,7 +160,7 @@ public class Manggag extends AppCompatActivity {
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
 
-            cal.add(Calendar.HOUR, -3);
+            cal.add(Calendar.MINUTE,-1);
 
             // 본격적으로 그래프 그리기
             Drawgraph(cal);
